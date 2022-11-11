@@ -3,6 +3,10 @@
 #include <sstream>
 #include <nlohmann/json.hpp>
 #include "command.hpp"
+#include "../tools/utf8_encoder.hpp"
+#include "../tools/macro.hpp"
+
+FARCONN_NAMESPACE_BEGIN(general)
 
 class command_analyzer {
 public:
@@ -31,3 +35,5 @@ private:
 private:
 	nlohmann::json model;
 };
+
+FARCONN_NAMESPACE_END

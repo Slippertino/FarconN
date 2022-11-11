@@ -10,6 +10,8 @@ add_subdirectory(${FCNN_THIRDPARTY_DIR}/nlohmann_json)
 
 file(GLOB_RECURSE FCNN_SOURCES  "${FCNN_INCLUDE_DIR}/*.hpp" "${FCNN_INCLUDE_DIR}/*.cpp")
 
+message(${FCNN_SOURCES})
+
 add_executable(${PROJECT_NAME} main.cpp ${FCNN_SOURCES})
 
 target_link_directories(

@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include "../tools/macro.hpp"
+
+FARCONN_NAMESPACE_BEGIN(general)
 
 class composite_parameter_builder {
 public:
@@ -36,3 +39,5 @@ private:
 	std::vector<std::string> keys;
 	std::vector<std::string>::const_iterator current_key_it;
 };
+
+FARCONN_NAMESPACE_END

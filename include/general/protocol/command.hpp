@@ -3,6 +3,9 @@
 #include <string>
 #include <vector>
 #include <nlohmann/json.hpp>
+#include "../tools/macro.hpp"
+
+FARCONN_NAMESPACE_BEGIN(general)
 
 struct command {
 	std::string id;
@@ -16,3 +19,5 @@ struct command {
 		params
 	)
 };
+
+FARCONN_NAMESPACE_END

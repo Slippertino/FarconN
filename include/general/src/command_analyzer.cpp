@@ -1,5 +1,7 @@
 #include "../protocol/command_analyzer.hpp"
 
+FARCONN_NAMESPACE_BEGIN(general)
+
 command_analyzer::command_analyzer() = default;
 
 command_analyzer& command_analyzer::set_id(const std::string& id) {
@@ -26,7 +28,9 @@ std::string command_analyzer::pop_parameter() {
 }
 
 std::string command_analyzer::to_string() const {
-	return model.dump(1);
+	auto result = model.dump(1);
+	utf8_encoder::from_local_to_utf8(result);
+	return result;
 }
 
 void command_analyzer::to_command(command& cmd) const {
@@ -34,7 +38,10 @@ void command_analyzer::to_command(command& cmd) const {
 }
 
 command_analyzer& command_analyzer::parse(std::string& command) {
+	utf8_encoder::from_utf8_to_local(command);
 	model.clear();
 	nlohmann::to_json(model, command);
 	return *this;
 }
+
+FARCONN_NAMESPACE_END
