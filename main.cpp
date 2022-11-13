@@ -1,8 +1,12 @@
+#pragma once
+
 #include <iostream>
 #include "include/general/protocol/command_analyzer.hpp"
 #include "include/general/protocol/composite_parameter_builder.hpp"
 #include "include/general/tools/utf8_encoder.hpp"
 #include "include/general/network/networking.hpp"
+#include "include/general/network/client_networking_base.hpp"
+#include "include/general/network/networking_execution.hpp"
 
 int main() {
 	setlocale(LC_ALL, "rus");

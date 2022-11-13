@@ -2,33 +2,19 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-/* 5 КБ = 5 * 1024Б */
 const uint32_t networking::buffer_size = 5120;
+networking_storage networking::storage;
 
-bool networking::is_networking_setup = false;
-
-networking::networking() {
-	WSADATA wsData;
-
-	if (!is_networking_setup) {
-		auto erState = WSAStartup(MAKEWORD(2, 2), &wsData);
-
-		if (!erState) {
-			throw std::runtime_error("Ошибка инициализации сокетных интерфейсов!");
-		}
-
-		is_networking_setup = true;
-	}
+networking::networking() = default;
+networking::networking(SOCKET sock) : socket(sock) {
+	storage.add_socket(socket);
 }
 
-networking::networking(SOCKET sock) : networking(), socket(sock) 
-{ }
-
 void networking::send_message(const std::string& msg) {
-	int sent_bytes_count = 0;
+	size_t sent_bytes_count = 0;
 
 	do {
-		auto cur = send(socket, &msg[sent_bytes_count], msg.size() - sent_bytes_count, 0);
+		int cur = send(socket, &msg[sent_bytes_count], msg.size() - sent_bytes_count, 0);
 
 		switch (cur) {
 
@@ -36,7 +22,9 @@ void networking::send_message(const std::string& msg) {
 			return;
 
 		case SOCKET_ERROR:
-			throw std::runtime_error(build_error_message("Ошибка при отправке данных!"));
+			throw std::runtime_error(
+				BUILD_ERROR_MESSAGE("Ошибка при отправке данных!")
+			);
 
 		default:
 			break;
@@ -48,7 +36,9 @@ void networking::send_message(const std::string& msg) {
 }
 
 void networking::receive_message(std::string& msg) {
-	std::string buffer(buffer_size);
+	std::string buffer;
+	buffer.resize(buffer_size);
+
 	int received_bytes_count;
 
 	do {
@@ -60,7 +50,9 @@ void networking::receive_message(std::string& msg) {
 			return;
 
 		case SOCKET_ERROR:
-			throw std::runtime_error(build_error_message("Ошибка при получении данных!"));
+			throw std::runtime_error(
+				BUILD_ERROR_MESSAGE("Ошибка при получении данных!")
+			);
 
 		default:
 			break;
@@ -71,20 +63,17 @@ void networking::receive_message(std::string& msg) {
 }
 
 networking::~networking() {
+	storage.remove_socket(socket);
 	closesocket(socket);
-}
-
-std::string networking::build_error_message(const std::string& general) {
-	std::ostringstream result;
-	result << general << "\tКод: " << WSAGetLastError() << "\n";
-	return result.str();
 }
 
 sockaddr_in networking::create_sockaddr_in(const std::string& ipv4, uint16_t port) {
 	in_addr ip_to_num;
 
 	if (inet_pton(AF_INET, ipv4.c_str(), &ip_to_num) <= 0) {
-		throw std::runtime_error("Ошибке при переводе эндпоинта из формата представления в формат работы с сетью!");
+		throw std::runtime_error(
+			BUILD_ERROR_MESSAGE("Ошибке при переводе эндпоинта из формата представления в формат работы с сетью!")
+		);
 	}
 
 	sockaddr_in servInfo;

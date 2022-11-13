@@ -1,11 +1,8 @@
 #pragma once
 
-#include <WinSock2.h>
-#include <ws2tcpip.h>
 #include <cstdint>
 #include <string>
-#include <stdexcept>
-#include <sstream>
+#include "networking_storage.hpp"
 #include "../tools/macro.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -17,20 +14,18 @@ public:
 	networking();
 	networking(SOCKET);
 
+	virtual ~networking();
+
+protected:
 	void send_message(const std::string&);
 	void receive_message(std::string&);
 
-	virtual void run() = 0;
-
-	~networking();
-
-protected:
 	sockaddr_in create_sockaddr_in(const std::string&, uint16_t);
-	std::string build_error_message(const std::string&);
 
 protected:
 	static const uint32_t buffer_size;
-	static bool is_networking_setup;
+	static networking_storage storage;
+
 	SOCKET socket;
 };
 
