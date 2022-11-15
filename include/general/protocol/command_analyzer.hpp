@@ -21,6 +21,8 @@ public:
 	}
 
 	std::string pop_parameter();
+	void clear_parameters();
+
 	std::string to_string() const;
 	void to_command(command&) const;
 

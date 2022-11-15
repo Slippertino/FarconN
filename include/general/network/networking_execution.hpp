@@ -10,8 +10,8 @@ class networking_execution {
 public:
 	networking_execution();
 
-	void run();
-	void stop();
+	virtual void run();
+	virtual void stop();
 
 	virtual ~networking_execution();
 

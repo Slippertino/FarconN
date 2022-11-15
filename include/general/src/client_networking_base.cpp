@@ -26,10 +26,12 @@ void client_networking_base::working_context() {
 		if (storage.can_write(socket)) {
 			std::string msg;
 
-			{
-				std::lock_guard<std::mutex> locker(messages_to_send_locker);
-				msg = messages_to_send.front();
-			}
+			messages_to_send_locker.lock();
+
+			msg = messages_to_send.front();
+			messages_to_send.pop();
+
+			messages_to_send_locker.unlock();
 
 			send_message(msg);
 		}

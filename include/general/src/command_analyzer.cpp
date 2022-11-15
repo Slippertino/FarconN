@@ -27,6 +27,10 @@ std::string command_analyzer::pop_parameter() {
 	return param;
 }
 
+void command_analyzer::clear_parameters() {
+	model["params"].clear();
+}
+
 std::string command_analyzer::to_string() const {
 	auto result = model.dump(1);
 	utf8_encoder::from_local_to_utf8(result);

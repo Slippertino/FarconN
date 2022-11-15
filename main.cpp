@@ -7,6 +7,7 @@
 #include "include/general/network/networking.hpp"
 #include "include/general/network/client_networking_base.hpp"
 #include "include/general/network/networking_execution.hpp"
+#include <mysql/jdbc.h>
 
 int main() {
 	setlocale(LC_ALL, "rus");

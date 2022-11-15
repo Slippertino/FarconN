@@ -5,7 +5,9 @@ FARCONN_NAMESPACE_BEGIN(general)
 const uint32_t networking::buffer_size = 5120;
 networking_storage networking::storage;
 
-networking::networking() = default;
+networking::networking() : socket(INVALID_SOCKET)
+{ }
+
 networking::networking(SOCKET sock) : socket(sock) {
 	storage.add_socket(socket);
 }
@@ -64,7 +66,9 @@ void networking::receive_message(std::string& msg) {
 
 networking::~networking() {
 	storage.remove_socket(socket);
-	closesocket(socket);
+	if (socket != INVALID_SOCKET) {
+		closesocket(socket);
+	}
 }
 
 sockaddr_in networking::create_sockaddr_in(const std::string& ipv4, uint16_t port) {
