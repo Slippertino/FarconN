@@ -8,7 +8,7 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 class query_ranking_estimator {
 public:
-	static double estimate_query_relevance(const std::string&, const std::string&);
+	static double estimate_query_ranking(const std::string&, const std::string&);
 
 private:
 	static const double penalty_for_mismatch;
