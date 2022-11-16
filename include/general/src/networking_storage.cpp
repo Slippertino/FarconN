@@ -97,8 +97,10 @@ void networking_storage::update_descs(std::map<UINT, WSAPOLLFD>& descs) {
 void networking_storage::working_context() {
 	update_descs(descs_to_read);
 	update_descs(descs_to_write);
+}
 
-	std::this_thread::sleep_for(default_context_delay_ms);
+void networking_storage::setup_contexts() {
+	add_context(&networking_storage::working_context, mt_sleep_time(1));
 }
 
 FARCONN_NAMESPACE_END

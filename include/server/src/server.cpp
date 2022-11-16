@@ -13,13 +13,22 @@ server::server(const server_config& config) :
 	networking.setup(config.ipv4, config.port);
 }
 
-void server::run() {
-	networking.run();
-
-	cancellation_flag = false;
+void server::setup_contexts() {
 	for (auto i = 0; i < working_flows_count; ++i) {
-		working_flows[i] = std::thread(&server::handle_command, this);
+		add_context(&server::handle_command, mt_sleep_time(1));
 	}
+}
+
+void server::run() {
+	multithread_context<server>::run();
+
+	networking.run();
+}
+
+void server::stop() {
+	multithread_context<server>::stop();
+
+	networking.stop();
 }
 
 void server::add_client(SOCKET socket) {
@@ -34,36 +43,40 @@ void server::push_command(SOCKET socket, const std::string& command) {
 }
 
 server::~server() {
-	cancellation_flag = true;
-	for (auto& flow : working_flows) {
-		flow.join();
-	}
+	stop();
 }
 
 void server::handle_command() {
-	while (!cancellation_flag) {
-		commands_mutex.lock();
-		auto socket_command = commands_to_handle.front();
-		commands_to_handle.pop();
+	commands_mutex.lock();
+
+	if (commands_to_handle.empty()) {
 		commands_mutex.unlock();
-
-		command_analyzer analyzer;
-		command com;
-
-		analyzer.parse(socket_command.second).to_command(com);
-
-		arguments_t output_args;
-		command_handlers.at(com.cmd_name)(com.params, output_args);
-
-		analyzer.clear_parameters();
-		for (auto& arg : output_args) {
-			analyzer.push_parameter(arg);
-		}
-
-		clients[socket_command.first]->push_message(
-			analyzer.to_string()
-		);
+		return;
 	}
+
+	auto socket_command = commands_to_handle.front();
+	commands_to_handle.pop();
+
+	commands_mutex.unlock();
+
+	LOG() << "Входящая команда: " << socket_command.second << "\n";
+
+	command_analyzer analyzer;
+	command com;
+
+	analyzer.parse(socket_command.second).to_command(com);
+
+	arguments_t output_args;
+	command_handlers.at(com.cmd_name)(com.params, output_args);
+
+	analyzer.clear_parameters();
+	for (auto& arg : output_args) {
+		analyzer.push_parameter(arg);
+	}
+
+	clients[socket_command.first]->push_message(
+		analyzer.to_string()
+	);
 }
 
 FARCONN_NAMESPACE_END

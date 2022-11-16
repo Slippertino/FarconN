@@ -9,7 +9,7 @@
 #include <sstream>
 #include <shared_mutex>
 #include "../tools/macro.hpp"
-#include "networking_execution.hpp"
+#include "../multithread_context/multithread_context.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -17,7 +17,7 @@ FARCONN_NAMESPACE_BEGIN(general)
 
 #define BUILD_ERROR_MESSAGE(message) (std::ostringstream() << message << "\tКод: " << WSAGetLastError() << "\n").str()
 
-class networking_storage : public networking_execution {
+class networking_storage : public multithread_context<networking_storage> {
 public:
 	networking_storage();
 
@@ -30,11 +30,13 @@ public:
 	~networking_storage();
 
 protected:
-	void working_context() override;
+	void setup_contexts() override;
 
 private:
 	bool can_do(SOCKET, std::map<UINT, WSAPOLLFD>&, SHORT);
 	void update_descs(std::map<UINT, WSAPOLLFD>&);
+
+	void working_context();
 
 private:
 	std::map<UINT, WSAPOLLFD> descs_to_read;

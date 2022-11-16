@@ -40,8 +40,10 @@ void client_networking_base::working_context() {
 		cancellation_flag = true;
 		throw error;
 	}
+}
 
-	std::this_thread::sleep_for(default_context_delay_ms);
+void client_networking_base::setup_contexts() {
+	add_context(&client_networking_base::working_context, mt_sleep_time(1));
 }
 
 FARCONN_NAMESPACE_END

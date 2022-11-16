@@ -3,12 +3,12 @@
 #include <atomic>
 #include <thread>
 #include <queue>
-#include "networking_execution.hpp"
+#include "../multithread_context/multithread_context.hpp"
 #include "networking.hpp"
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-class client_networking_base : public networking_execution, 
+class client_networking_base : public multithread_context<client_networking_base>, 
 							   public networking {
 public:
 	client_networking_base();
@@ -19,7 +19,9 @@ public:
 	virtual ~client_networking_base();
 
 protected:
-	void working_context() override;
+	void setup_contexts() override;
+
+	void working_context();
 
 	virtual void store_message(const std::string&) = 0;
 

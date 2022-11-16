@@ -1,13 +1,13 @@
 #pragma once
 
-#include "../../general/network/networking_execution.hpp"
+#include "../../general/multithread_context/multithread_context.hpp"
 #include "../../general/network/networking.hpp"
 
 using namespace farconn::general;
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-class server_networking : public networking_execution, 
+class server_networking : public multithread_context<server_networking>, 
 						  public networking {
 public:
 	server_networking() = delete;
@@ -15,9 +15,11 @@ public:
 
 	void setup(const std::string&, uint16_t);
 
+	void setup_contexts() override;
 	void run() override;
 	void stop() override;
-	void working_context() override;
+
+	void working_context();
 
 	~server_networking();
 

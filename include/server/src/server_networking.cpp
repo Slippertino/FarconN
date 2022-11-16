@@ -22,6 +22,10 @@ void server_networking::setup(const std::string& ipv4, uint16_t port) {
 	storage.add_socket(socket);
 }
 
+void server_networking::setup_contexts() { 
+	add_context(&server_networking::working_context, mt_sleep_time(1));
+}
+
 void server_networking::run() {
 	auto res = listen(socket, SOMAXCONN);
 
@@ -31,11 +35,11 @@ void server_networking::run() {
 		);
 	}
 
-	networking_execution::run();
+	run_context_loop(&server_networking::working_context, mt_sleep_time(1));
 }
 
 void server_networking::stop() {
-	networking_execution::stop();
+	multithread_context<server_networking>::stop();
 
 	if (socket != INVALID_SOCKET) {
 		shutdown(socket, SD_BOTH);
@@ -60,11 +64,11 @@ void server_networking::working_context() {
 		cancellation_flag = true;
 		throw error;
 	}
-
-	std::this_thread::sleep_for(default_context_delay_ms);
 }
 
 server_networking::~server_networking() {
+	stop();
+
 	if (socket != INVALID_SOCKET) {
 		shutdown(socket, SD_BOTH);
 	}
