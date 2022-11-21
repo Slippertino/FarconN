@@ -10,6 +10,8 @@
 #include <shared_mutex>
 #include "../tools/macro.hpp"
 #include "../multithread_context/multithread_context.hpp"
+#include <cpp_events/event.hpp>
+#include "../logger/logger.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -19,7 +21,7 @@ FARCONN_NAMESPACE_BEGIN(general)
 
 class networking_storage : public multithread_context<networking_storage> {
 public:
-	networking_storage();
+	static networking_storage& storage();
 
 	void add_socket(SOCKET);
 	void remove_socket(SOCKET);
@@ -27,16 +29,18 @@ public:
 	bool can_read(SOCKET);
 	bool can_write(SOCKET);
 
-	~networking_storage();
-
 protected:
 	void setup_contexts() override;
 
 private:
+	networking_storage();
+
 	bool can_do(SOCKET, std::map<UINT, WSAPOLLFD>&, SHORT);
 	void update_descs(std::map<UINT, WSAPOLLFD>&);
 
 	void working_context();
+
+	~networking_storage();
 
 private:
 	std::map<UINT, WSAPOLLFD> descs_to_read;

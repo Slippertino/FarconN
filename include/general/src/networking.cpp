@@ -3,13 +3,17 @@
 FARCONN_NAMESPACE_BEGIN(general)
 
 const uint32_t networking::buffer_size = 5120;
-networking_storage networking::storage;
 
-networking::networking() : socket(INVALID_SOCKET)
-{ }
+networking::networking() : socket(INVALID_SOCKET) {
+	networking_storage::storage();
+}
 
 networking::networking(SOCKET sock) : socket(sock) {
-	storage.add_socket(socket);
+	networking_storage::storage().add_socket(socket);
+}
+
+SOCKET networking::get_socket_desc() const {
+	return socket;
 }
 
 void networking::send_message(const std::string& msg) {
@@ -65,7 +69,7 @@ void networking::receive_message(std::string& msg) {
 }
 
 networking::~networking() {
-	storage.remove_socket(socket);
+	networking_storage::storage().remove_socket(socket);
 	if (socket != INVALID_SOCKET) {
 		closesocket(socket);
 	}

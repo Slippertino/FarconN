@@ -19,12 +19,11 @@ public:
 	
 	void run() override;
 	void stop() override;
-	void setup_contexts() override;
-
-	void add_client(SOCKET);
-	void push_command(SOCKET, const std::string&);
 
 	~server();
+
+protected:
+	void setup_contexts() override;
 
 private:
 	using arguments_t = server_middleware::arguments_t;
@@ -33,8 +32,14 @@ private:
 	void handle_command();
 
 private:
+	void on_connection_incoming(SOCKET);
+	void on_server_net_error_occured(void*);
+	void on_message_received(SOCKET, const std::string&);
+	void on_client_net_error_occured(void*);
+
+private:
 	static const size_t working_flows_count;
-	static const std::unordered_map<std::string, std::function<void(const arguments_t&, arguments_t&)>> command_handlers;
+	static const std::unordered_map<std::string, std::function<void(server*, const arguments_t&, arguments_t&)>> command_handlers;
 
 	std::queue<std::pair<SOCKET, std::string>> commands_to_handle;
 	std::mutex commands_mutex;

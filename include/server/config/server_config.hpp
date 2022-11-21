@@ -3,17 +3,17 @@
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include "../../general/config/config.hpp"
 #include "database_config.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-struct server_config {
-	std::string ipv4;
-	uint16_t port;
-	std::string files_storage_path;
-	database_config db_config;
+class server_config : public farconn::general::config<server_config> {
+public:
+	server_config() = default;
 
-	void load(const std::filesystem::path&);
+	std::string get_files_storage_path() const;
+	database_config get_db_config() const;
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(
 		server_config,
@@ -22,6 +22,10 @@ struct server_config {
 		files_storage_path,
 		db_config
 	)
+
+private:
+	std::string files_storage_path;
+	database_config db_config;
 };
 
 FARCONN_NAMESPACE_END

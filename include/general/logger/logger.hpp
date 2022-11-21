@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iomanip>
+#include <sstream>
 #include <mutex>
 #include "logger_stream.hpp"
 #include "../tools/macro.hpp"
@@ -18,6 +20,9 @@ public:
 
 private:
 	logger() = default;
+
+	std::string build_prefix() const;
+	std::string get_time() const;
 
 private:
 	std::mutex stream_locker;

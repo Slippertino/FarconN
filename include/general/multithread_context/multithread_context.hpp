@@ -5,11 +5,15 @@
 #include <vector>
 #include <functional>
 #include "../tools/macro.hpp"
+#include "context_mode_type.hpp"
+#include <cpp_events/event.hpp>
 
 FARCONN_NAMESPACE_BEGIN(general)
 
 template<class Derived>
 class multithread_context {
+	event(error_occured, void*);
+
 public:
 	multithread_context() = default;
 	
@@ -22,7 +26,19 @@ public:
 		cancellation_flag = false;
 
 		for (auto& cont : contexts) {
-			flows.push_back(std::thread(&Derived::run_context_loop, get_derived(), cont.first, cont.second));
+			auto th = std::thread(
+				&Derived::run_context_loop, 
+				get_derived(),
+				std::get<0>(cont), 
+				std::get<1>(cont)
+			);
+
+			if (std::get<2>(cont) == mt_mode::ASYNCHRONIZED) {
+				th.detach();
+				continue;
+			}
+
+			flows.push_back(std::move(th));
 		}
 	}
 
@@ -43,10 +59,11 @@ public:
 protected:
 	using mt_context = std::function<void(Derived*)>;
 	using mt_sleep_time = std::chrono::milliseconds;
+	using mt_mode = context_mode_type;
 
 protected:
-	void add_context(const mt_context& context, mt_sleep_time sleep_time) {
-		contexts.push_back({ context, sleep_time });
+	void add_context(const mt_context& context, mt_sleep_time sleep_time, mt_mode mode = mt_mode::SYNCHRONIZED) {
+		contexts.push_back({ context, sleep_time, mode});
 	}
 
 	void run_context_loop(const mt_context& context, mt_sleep_time sleep_time) {
@@ -65,7 +82,7 @@ protected:
 protected:
 	bool is_setup = false;
 
-	std::vector<std::pair<mt_context, mt_sleep_time>> contexts;
+	std::vector<std::tuple<mt_context, mt_sleep_time, mt_mode>> contexts;
 
 	std::vector<std::thread> flows;
 	std::atomic<bool> cancellation_flag = true;

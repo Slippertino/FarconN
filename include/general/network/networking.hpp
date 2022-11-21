@@ -3,7 +3,9 @@
 #include <cstdint>
 #include <string>
 #include "networking_storage.hpp"
+#include <cpp_events/event.hpp>
 #include "../tools/macro.hpp"
+#include "../logger/logger.hpp"
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -13,6 +15,8 @@ class networking {
 public:
 	networking();
 	networking(SOCKET);
+
+	SOCKET get_socket_desc() const;
 
 	virtual ~networking();
 
@@ -24,7 +28,6 @@ protected:
 
 protected:
 	static const uint32_t buffer_size;
-	static networking_storage storage;
 
 	SOCKET socket;
 };

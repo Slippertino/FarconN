@@ -43,8 +43,7 @@ void command_analyzer::to_command(command& cmd) const {
 
 command_analyzer& command_analyzer::parse(std::string& command) {
 	utf8_encoder::from_utf8_to_local(command);
-	model.clear();
-	nlohmann::to_json(model, command);
+	model = nlohmann::json::parse(command);
 	return *this;
 }
 

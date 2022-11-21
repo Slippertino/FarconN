@@ -4,14 +4,21 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
+networking_storage& networking_storage::storage() {
+	static networking_storage storage;
+
+	return storage;
+}
+
 networking_storage::networking_storage() {
 	WSADATA wsData;
 	auto erState = WSAStartup(MAKEWORD(2, 2), &wsData);
 
 	if (erState) {
-		throw std::runtime_error(
-			BUILD_ERROR_MESSAGE("Ошибка инициализации сокетных интерфейсов!")
-		);
+		LOG() << BUILD_ERROR_MESSAGE("Ошибка инициализации сокетных интерфейсов!");
+	}
+	else {
+		LOG() << "Успешная инициализация сокетных интерфейсов!\n";
 	}
 
 	run();
@@ -33,8 +40,13 @@ void networking_storage::add_socket(SOCKET sock) {
 void networking_storage::remove_socket(SOCKET sock) {
 	std::lock_guard<std::shared_mutex> locker(descs_events_mutex);
 
-	descs_to_read.erase(sock);
-	descs_to_write.erase(sock);
+	if (descs_to_read.find(sock) != descs_to_read.end()) {
+		descs_to_read.erase(sock);
+	}
+
+	if (descs_to_write.find(sock) != descs_to_write.end()) {
+		descs_to_write.erase(sock);
+	}
 }
 
 bool networking_storage::can_read(SOCKET sock) {
@@ -66,14 +78,9 @@ void networking_storage::update_descs(std::map<UINT, WSAPOLLFD>& descs) {
 	descs_events_mutex.lock_shared();
 
 	std::vector<WSAPOLLFD> transformed_descs;
-	std::transform(
-		descs.cbegin(),
-		descs.cend(),
-		transformed_descs.begin(),
-		[](const std::pair<UINT, WSAPOLLFD>& obj) {
-			return obj.second;
-		}
-	);
+	for (auto& cur : descs) {
+		transformed_descs.push_back(cur.second);
+	}
 
 	descs_events_mutex.unlock_shared();
 
@@ -83,9 +90,7 @@ void networking_storage::update_descs(std::map<UINT, WSAPOLLFD>& descs) {
 		auto result = WSAPoll(transformed_descs.data(), transformed_descs.size(), NULL);
 
 		if (result == SOCKET_ERROR) {
-			throw std::runtime_error(
-				BUILD_ERROR_MESSAGE("Ошибка при выполнении инструкции WSAPoll!")
-			);
+			LOG() << BUILD_ERROR_MESSAGE("Ошибка при выполнении инструкции WSAPoll!");
 		}
 
 		for (auto& desc : transformed_descs) {

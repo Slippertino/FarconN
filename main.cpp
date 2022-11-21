@@ -7,6 +7,10 @@
 #include "include/general/network/networking.hpp"
 #include "include/general/network/client_networking_base.hpp"
 #include <mysql/jdbc.h>
+#include <cpp_events/event.hpp>
+
+using namespace farconn::general;
+
 
 int main() {
 	setlocale(LC_ALL, "rus");

@@ -2,13 +2,12 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-void server_config::load(const std::filesystem::path& config_path) {
-	std::ifstream ifstr(config_path);
-	nlohmann::json js;
+std::string server_config::get_files_storage_path() const {
+	return files_storage_path;
+}
 
-	ifstr >> js;
-
-	from_json(js, *this);
+database_config server_config::get_db_config() const {
+	return db_config;
 }
 
 FARCONN_NAMESPACE_END

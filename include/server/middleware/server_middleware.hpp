@@ -18,6 +18,8 @@ public:
 
 	/* Handlers */
 
+	void handle_echo(const arguments_t& input, arguments_t& output);
+
 private:
 	std::unordered_map<std::string, client_session> sessions;
 	std::mutex sessions_mutex;

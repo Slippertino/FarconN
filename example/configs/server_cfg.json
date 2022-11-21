@@ -1,0 +1,11 @@
+{
+	"ipv4": "127.0.0.1",
+	"port": 5000,
+	"files_storage_path": ".",
+	"db_config": {
+		"url": ".",
+		"user_name": ".",
+		"password": ".",
+		"database_name": "."
+	}
+}
