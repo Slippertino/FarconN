@@ -7,11 +7,26 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
+template<class T>
+struct param_modifier {
+	void operator()(T& value) { }
+};
+
+template<>
+struct param_modifier<std::string> {
+	void operator()(std::string& value) {
+		utf8_encoder::from_local_to_utf8(value);
+	}
+};
+
 class composite_parameter_builder {
 public:
 	composite_parameter_builder() = delete;
-    composite_parameter_builder(const std::vector<std::string>& keys) : keys(keys) 
-	{ }
+    composite_parameter_builder(const std::vector<std::string>& keys) : keys(keys) {
+		for (auto& k : this->keys) {
+			utf8_encoder::from_local_to_utf8(k);
+		}
+	}
 
 	template<class...Args>
 	std::string build(const Args&... args) {
@@ -22,10 +37,12 @@ public:
 
 private:
 	template<class T, class...Args>
-	void set_value(const T& value, const Args&... args) {
+	void set_value(T value, Args... args) {
 		if (current_key_it == keys.cend()) {
 			current_key_it = keys.cbegin();
 		}
+
+		param_modifier<T>()(value);
 
 		model[*current_key_it++] = value;
 

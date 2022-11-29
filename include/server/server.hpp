@@ -6,9 +6,12 @@
 #include "network/client_networking_proxy.hpp"
 #include "network/server_networking.hpp"
 #include "middleware/server_middleware.hpp"
+#include "../general/tools/thread_safe_containers/thread_safe_queue.hpp"
 #include "../general/logger/logger.hpp"
 #include "../general/multithread_context/multithread_context.hpp"
 #include "protocol/command_analyzer.hpp"
+#include "protocol v2.0/protocol_interpreter.hpp"
+#include "protocol v2.0/command_builder.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 
@@ -26,23 +29,19 @@ protected:
 	void setup_contexts() override;
 
 private:
-	using arguments_t = server_middleware::arguments_t;
-
-private:
 	void handle_command();
 
 private:
 	void on_connection_incoming(SOCKET);
 	void on_server_net_error_occured(void*);
-	void on_message_received(SOCKET, const std::string&);
+	void on_message_received(SOCKET, std::string);
 	void on_client_net_error_occured(void*);
 
 private:
 	static const size_t working_flows_count;
-	static const std::unordered_map<std::string, std::function<void(server*, const arguments_t&, arguments_t&)>> command_handlers;
+	static const std::unordered_map<std::string, std::function<void(server*, const command_request*, command_response*)>> command_handlers;
 
-	std::queue<std::pair<SOCKET, std::string>> commands_to_handle;
-	std::mutex commands_mutex;
+	thread_safe_queue<std::pair<SOCKET, std::string>> commands_to_handle;
 
 	std::unordered_map<SOCKET, std::unique_ptr<client_networking_proxy>> clients;
 	std::mutex clients_mutex;

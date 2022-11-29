@@ -11,6 +11,8 @@ logger& logger::get_instance() {
 logger_stream&& logger::log() {
 	stream_locker.lock();
 
+	std::cout << build_prefix();
+
 	return logger_stream(stream_locker);
 }
 

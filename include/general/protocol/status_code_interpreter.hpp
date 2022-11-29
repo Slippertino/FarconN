@@ -9,6 +9,7 @@ FARCONN_NAMESPACE_BEGIN(general)
 
 class status_code_interpreter {
 public:
+	static std::pair<uint16_t, std::string> interpret(server_status_code);
 	static std::string get_description(server_status_code);
 
 private:

@@ -1,7 +1,9 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
 #include <mutex>
+#include "../tools/utf8_encoder.hpp"
 #include "../tools/macro.hpp"
 
 FARCONN_NAMESPACE_BEGIN(general)

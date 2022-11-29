@@ -1,4 +1,5 @@
 #include "../client.hpp"
+#include "../../general/protocol v2.0/protocol_interpreter.hpp"
 
 FARCONN_NAMESPACE_BEGIN(client)
 
@@ -28,33 +29,23 @@ void client::stop() {
 }
 
 void client::setup_contexts() {
-	add_context(&client::working_context, mt_sleep_time(10000), mt_mode::ASYNCHRONIZED);
+	add_context(&client::working_context, mt_sleep_time(2000), mt_mode::ASYNCHRONIZED);
 }
 
 void client::working_context() {
-	farconn::general::command_analyzer anal;
+	std::string message_to_send;
+	LOG() << "Сообщение: ";
+	std::getline(std::cin, message_to_send);
 
-	anal.set_id("id");
-	anal.set_command("echo");
+	LOG() << "В очередь на отправку: " << message_to_send << "\n";
 
-	int n_params;
-	std::cout << "Введите кол-во параметров: "; 
-	std::cin >> n_params;
+	utf8_encoder::from_local_to_utf8(message_to_send);
 
-	for (auto i = 0; i < n_params; ++i) {
-		std::cin.clear();
-		std::string temp;
-		std::getline(std::cin, temp);
-
-		anal.push_parameter(temp);
-	}
-
-	networking.push_message(anal.to_string());
-
-	LOG() << "Сообщение отправлено!\n";
+	networking.push_message(message_to_send);
 }
 
-void client::on_message_received(SOCKET sock, const std::string& msg) {
+void client::on_message_received(SOCKET sock, std::string msg) { 
+	utf8_encoder::from_utf8_to_local(msg);
 	LOG() << "Получено сообщение: " << msg << "\n";
 }
 

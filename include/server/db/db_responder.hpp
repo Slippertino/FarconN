@@ -5,7 +5,15 @@
 #include <filesystem>
 #include <mysql/jdbc.h>
 #include "../config/database_config.hpp"
+#include "../general/tools/thread_safe_containers/thread_safe_queue.hpp"
+#include "../../general/protocol/server_status_code.hpp"
+#include "../tools/token_generator.hpp"
+#include <unordered_set>
+#include "../../general/logger/logger.hpp"
 #include "db_queries_generator.hpp"
+#include "../middleware/entities/users_relations_type.hpp"
+
+using namespace farconn::general;
 
 FARCONN_NAMESPACE_BEGIN(server)
 
@@ -16,14 +24,34 @@ public:
 
 	void setup();
 
+	server_status_code signup_user(const std::string&, const std::string&);
+
+	server_status_code login_user(const std::string&, const std::string&, std::string&);
+	server_status_code logout_user(const std::string&);
+
+	server_status_code get_users_relations(const std::string&, const std::string&, users_relations_type&);
+	server_status_code get_user_profile_data(const std::string&, std::vector<std::string>&);
+
 	~db_responder();
 
 private:
+	template<class...Args>
+	using query_generator_t = std::vector<std::string>(*)(Args...);
+
+	struct query_components {
+		std::shared_ptr<sql::Connection> connection;
+		std::unique_ptr<sql::Statement> exec;
+	};
+
+private:
+	query_components create_query_components();
+	void free_query_components(query_components&);
+
 	void create_connections();
 
 private:
 	static const size_t connections_count;
-	std::queue<std::shared_ptr<sql::Connection>> connections;
+	thread_safe_queue<std::shared_ptr<sql::Connection>> connections;
 	std::mutex connections_mutex;
 
 	database_config config;

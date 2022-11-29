@@ -8,7 +8,8 @@ using namespace farconn::client;
 const std::filesystem::path cfg_path = std::filesystem::path(R"(..\\..\\..\\example\\configs\\client_cfg.json)");
 
 int main() {
-	setlocale(LC_ALL, "ru");
+	SetConsoleOutputCP(1251);
+	SetConsoleCP(1251);
 
 	client_config config;
 

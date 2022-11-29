@@ -29,6 +29,8 @@ public:
 	bool can_read(SOCKET);
 	bool can_write(SOCKET);
 
+	void update();
+
 protected:
 	void setup_contexts() override;
 

@@ -1,5 +1,5 @@
 {
 	"ipv4": "127.0.0.1",
-	"port": 5055,
+	"port": 5000,
 	"downloads_storage_path": "."
 }

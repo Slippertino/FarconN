@@ -4,7 +4,7 @@
 FARCONN_NAMESPACE_BEGIN(server)
 
 std::string server_networking::build_logging_prefix(const std::string& event) const {
-	return (std::ostringstream() << "Server socket #" << socket << " : " << event << "\n").str();
+	return (std::ostringstream() << "Server socket #" << socket << " : " << event << ". ").str();
 }
 
 void server_networking::setup(const std::string& ipv4, uint16_t port) {
@@ -36,7 +36,7 @@ void server_networking::setup(const std::string& ipv4, uint16_t port) {
 		return;
 	}
 	else {
-		LOG() << build_logging_prefix("привязка сокета к локальному адресу удалась");
+		LOG() << build_logging_prefix("привязка сокета к локальному адресу удалась") << "\n";
 	}
 
 	networking_storage::storage().add_socket(socket);
@@ -57,7 +57,7 @@ void server_networking::run() {
 		return;
 	}
 	else {
-		LOG() << build_logging_prefix("начато прослушивание входящих соединений");
+		LOG() << build_logging_prefix("начато прослушивание входящих соединений") << "\n";
 	}
 
 	cancellation_flag = false;
@@ -69,7 +69,7 @@ void server_networking::stop() {
 	multithread_context<server_networking>::stop();
 
 	if (socket != INVALID_SOCKET) {
-		LOG() << build_logging_prefix("остановка...");
+		LOG() << build_logging_prefix("остановка...") << "\n";
 		shutdown(socket, SD_BOTH);
 	}
 }
@@ -89,7 +89,7 @@ void server_networking::working_context() {
 
 				event_invoke(connection_incoming)(client_sock);
 			} else {
-				LOG() << build_logging_prefix("неудачное подключение клиента");
+				LOG() << build_logging_prefix("неудачное подключение клиента") << "\n";
 			}
 		}
 	} catch (const std::runtime_error& error) {
@@ -105,7 +105,7 @@ server_networking::~server_networking() {
 	multithread_context<server_networking>::stop();
 
 	if (socket != INVALID_SOCKET) {
-		LOG() << build_logging_prefix("уничтожение...");
+		LOG() << build_logging_prefix("уничтожение...") << "\n";
 		shutdown(socket, SD_BOTH);
 	}
 }

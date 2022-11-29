@@ -6,6 +6,7 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 struct client_session {
 	std::string native_token;
+	std::string login;
 	searching_cache searching;
 };
 

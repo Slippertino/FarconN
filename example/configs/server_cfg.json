@@ -3,9 +3,9 @@
 	"port": 5000,
 	"files_storage_path": ".",
 	"db_config": {
-		"url": ".",
-		"user_name": ".",
-		"password": ".",
-		"database_name": "."
+		"url": "tcp://127.0.0.1",
+		"user_name": "root",
+		"password": "qwerty1234",
+		"database_name": "farconn"
 	}
 }

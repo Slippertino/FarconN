@@ -45,7 +45,7 @@ void networking::receive_message(std::string& msg) {
 	std::string buffer;
 	buffer.resize(buffer_size);
 
-	int received_bytes_count;
+	int received_bytes_count = 0;
 
 	do {
 		received_bytes_count = recv(socket, buffer.data(), buffer.size(), 0);
@@ -64,7 +64,7 @@ void networking::receive_message(std::string& msg) {
 			break;
 		}
 
-		msg += buffer;
+		msg += buffer.c_str();
 	} while (received_bytes_count == buffer_size);
 }
 

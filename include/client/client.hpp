@@ -22,7 +22,7 @@ protected:
 	void working_context();
 
 private:
-	void on_message_received(SOCKET, const std::string&);
+	void on_message_received(SOCKET, std::string);
 	void on_client_net_error_occured(void*);
 
 private:

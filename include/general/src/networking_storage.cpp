@@ -50,11 +50,11 @@ void networking_storage::remove_socket(SOCKET sock) {
 }
 
 bool networking_storage::can_read(SOCKET sock) {
-	return can_do(sock, descs_to_read, POLLIN);
+	return can_do(sock, descs_to_read, POLLRDNORM);
 }
 
 bool networking_storage::can_write(SOCKET sock) {
-	return can_do(sock, descs_to_write, POLLOUT);
+	return can_do(sock, descs_to_write, POLLWRNORM);
 }
 
 networking_storage::~networking_storage() {
@@ -66,10 +66,10 @@ bool networking_storage::can_do(SOCKET sock, std::map<UINT, WSAPOLLFD>& descs, S
 
 	auto& poll_fd = descs[sock];
 
-	descs_events_mutex.unlock_shared();
-
 	bool result = poll_fd.revents & flag;
 	poll_fd.revents = 0;
+
+	descs_events_mutex.unlock_shared();
 
 	return result;
 }
@@ -102,6 +102,10 @@ void networking_storage::update_descs(std::map<UINT, WSAPOLLFD>& descs) {
 void networking_storage::working_context() {
 	update_descs(descs_to_read);
 	update_descs(descs_to_write);
+}
+
+void networking_storage::update() {
+	working_context();
 }
 
 void networking_storage::setup_contexts() {

@@ -12,7 +12,7 @@ FARCONN_NAMESPACE_BEGIN(general)
 template<class Derived>
 class client_networking_base : public multithread_context<Derived>,
 							   public networking {
-	event(message_received, SOCKET, const std::string&);
+	event(message_received, SOCKET, std::string);
 
 public:
 	client_networking_base() = default;
@@ -53,7 +53,7 @@ protected:
 
 		try {
 			if (!is_connected()) {
-				LOG() << build_logging_prefix("ошибка") << " лиент отключен!" << "\n";
+				LOG() << build_logging_prefix("клиент отключен");
 
 				cancellation_flag = true;
 
@@ -64,26 +64,31 @@ protected:
 
 			if (storage.can_read(socket)) {
 				receive_message(msg);
+				networking_storage::storage().update();
 
-				LOG() << build_logging_prefix("получено сообщение") << msg << "\n";
+				LOG() << build_logging_prefix("получено сообщение");
 
 				event_invoke(message_received)(socket, msg);
 			}
 
 			if (storage.can_write(socket)) {
+				//LOG() << "“утааа...\n";
 				std::string msg;
 
 				messages_to_send_locker.lock();
 
 				if (!messages_to_send.empty()) {
+					LOG() << "ќтправл€ю...\n";
+
 					msg = messages_to_send.front();
 					messages_to_send.pop();
 
 					messages_to_send_locker.unlock();
 
 					send_message(msg);
+					networking_storage::storage().update();
 
-					LOG() << build_logging_prefix("отправлено сообщение") << msg << "\n";
+					LOG() << build_logging_prefix("отправлено сообщение");
 				}
 				else {
 					messages_to_send_locker.unlock();

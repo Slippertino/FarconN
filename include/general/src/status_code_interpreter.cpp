@@ -6,17 +6,30 @@ const std::string status_code_interpreter::unknown_code_description = "Неизвестн
 
 const std::unordered_map<server_status_code, std::string> status_code_interpreter::code_descriptions =
 {
-	{ server_status_code::OKEY,				              "ОК"			                  },
+	{ server_status_code::SYS__OKEY,				      "ОК"										    },
 
-	{ server_status_code::SIGNUP__EXISTING_LOGIN_ERROR,   "Данный логин уже существует!"  },
-	{ server_status_code::SIGNUP__INVALID_LOGIN_ERROR,    "Неверный формат логина!"       },
-	{ server_status_code::SIGNUP__INVALID_PASSWORD_ERROR, "Неверный формат пароля!"       },
+	{ server_status_code::SYS__INVALID_COMMAND,           "Неверная команда!"						    },
+	{ server_status_code::SYS__INVALID_TOKEN,             "Недопустимый сессионный токен пользователя!" },
+	{ server_status_code::SYS__NONEXISTEN_USER,           "Неизвестный пользователь!"                   },
 
-	{ server_status_code::LOGIN__NOT_EXISTEN_LOGIN_ERROR, "Данного логина не существует!" },
-	{ server_status_code::LOGIN__INVALID_PASSWORD_ERROR,  "Неверный пароль!"              },
+	{ server_status_code::SIGNUP__EXISTING_LOGIN_ERROR,   "Данный логин уже существует!"			    },
+	{ server_status_code::SIGNUP__INVALID_LOGIN_ERROR,    "Неверный формат логина!"					    },
+	{ server_status_code::SIGNUP__INVALID_PASSWORD_ERROR, "Неверный формат пароля!"					    },
 
-	{ server_status_code::INTERNAL_SERVER_ERROR,          "Ошибка сервера!"               },
+	{ server_status_code::LOGIN__INVALID_DATA_ERROR,      "Неверный логин или пароль!"				    },
+	{ server_status_code::LOGIN__ALREADY_LOGGED_IN,       "Пользователь уже авторизован!"			    },
+
+
+
+	{ server_status_code::SYS__INTERNAL_SERVER_ERROR,     "Ошибка на стороне сервера!"					},
 };
+
+std::pair<uint16_t,std::string> status_code_interpreter::interpret(server_status_code code) {
+	return {
+		static_cast<uint16_t>(code),
+		get_description(code)
+	};
+}
 
 std::string status_code_interpreter::get_description(server_status_code code) {
 	if (code_descriptions.find(code) != code_descriptions.end()) {
