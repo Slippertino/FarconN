@@ -8,6 +8,8 @@
 #include "../middleware/entities/user_profile.hpp"
 #include "../../general/tools/macro.hpp"
 
+using namespace farconn::general;
+
 FARCONN_NAMESPACE_BEGIN(server)
 
 #define Q(name) "\"" << name << "\""
@@ -30,6 +32,7 @@ private:
 private:
 	static std::string users_name_tb;
 	static std::string contacts_name_tb;
+	static std::string requests_name_tb;
 };
 
 FARCONN_NAMESPACE_END

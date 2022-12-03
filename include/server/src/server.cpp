@@ -4,16 +4,6 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 const size_t server::working_flows_count = 1;
 
-const std::unordered_map<std::string, std::function<void(server*, const command_entity*, command_response*)>> server::command_handlers =
-{
-	{"echo",         [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_echo(in, out); }},
-	{"signup",       [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_signup(in, out); }},
-	{"login",        [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_login(in, out); }},
-	{"logout",       [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_logout(in, out); }},
-	{"profile_get",  [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_profile_get(in, out); }},
-	{"profile_set",  [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_profile_set(in, out); }},
-};
-
 server::server(const server_config& config) : 
 	repository(config.get_db_config(), config.get_files_storage_path()) {
 	networking_storage::storage();
@@ -64,15 +54,9 @@ void server::handle_command() {
 	try {
 		com = protocol_interpreter::interpret(socket_command.second);
 
-		if (command_handlers.find(com->command) != command_handlers.end()) {
-			command_handlers.at(com->command)(this, com.get(), resp.get());
-			resp->command = com->command;
-			resp->options = com->options;
-		}
-		else {
-			LOG() << "Ошибка! Неизвестная команда: " << com->command << "\n";
-			resp->status = status_code_interpreter::interpret(server_status_code::SYS__INVALID_COMMAND_ERROR);
-		}
+		repository.handle(com.get(), resp.get());
+		resp->command = com->command;
+		resp->options = com->options;
 	}
 	catch (const std::exception& ex) {
 		LOG() << "Недопустимый ввод! " << ex.what() << "\n";

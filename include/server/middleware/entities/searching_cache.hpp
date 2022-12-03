@@ -2,7 +2,7 @@
 
 #include <string>
 #include <list>
-#include "../../general/tools/macro.hpp"
+#include "../general/tools/macro.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 

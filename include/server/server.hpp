@@ -38,7 +38,7 @@ private:
 
 private:
 	static const size_t working_flows_count;
-	static const std::unordered_map<std::string, std::function<void(server*, const command_entity*, command_response*)>> command_handlers;
+	//static const std::unordered_map<std::string, std::function<void(server*, const command_entity*, command_response*)>> command_handlers;
 
 	thread_safe_queue<std::pair<SOCKET, std::string>> commands_to_handle;
 

@@ -226,7 +226,7 @@ server_status_code db_responder::get_user_profile_data(const std::string& login,
 			result->beforeFirst(); 
 			result->next();
 
-			for (auto& cur : data.fields) {
+			for (auto& cur : data) {
 				std::string temp = result->getString(cur.second.name);
 				utf8_encoder::from_utf8_to_local(temp);
 				cur.second.value = temp;

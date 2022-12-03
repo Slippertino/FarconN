@@ -10,16 +10,21 @@
 #include "../tools/token_generator.hpp"
 #include "entities/users_relations_type.hpp"
 #include "entities/user_profile.hpp"
-//#include "../../general/protocol/composite_parameter_builder.hpp"
 #include "protocol/command_entities.hpp"
+#include "handlers/handlers.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 
 #define SERVER_ASSERT(out, condition, error_t) if(condition) { out->status = status_code_interpreter::interpret(error_t); return; }
 
+#define DECLARE_HANDLER(handler) friend class handler;
+
 class server_middleware {
-public:
-	using arguments_t = std::vector<std::string>;
+	DECLARE_HANDLER(signup_handler)
+	DECLARE_HANDLER(login_handler)
+	DECLARE_HANDLER(logout_handler)
+	DECLARE_HANDLER(profile_get_handler)
+	DECLARE_HANDLER(profile_set_handler)
 
 public:
 	server_middleware() = delete;
@@ -27,21 +32,11 @@ public:
 
 	void setup();
 
-	/* Handlers */
-
-	void handle_echo(const command_entity*, command_response*);
-
-	void handle_signup(const command_entity*, command_response*);
-
-	void handle_login(const command_entity*, command_response*);
-
-	void handle_logout(const command_entity*, command_response*);
-
-	void handle_profile_get(const command_entity*, command_response*);
-
-	void handle_profile_set(const command_entity*, command_response*);
+	void handle(const command_entity*, command_response*);
 
 private:
+	static const std::unordered_map<std::string, std::function<void(server_middleware*, const command_entity*, command_response*)>> command_handlers;
+
 	std::unordered_map<std::string, client_session> sessions;
 	std::mutex sessions_mutex;
 	db_responder database;

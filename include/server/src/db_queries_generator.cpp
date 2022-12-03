@@ -4,6 +4,7 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 std::string db_queries_generator::users_name_tb    = "users";
 std::string db_queries_generator::contacts_name_tb = "contacts";
+std::string db_queries_generator::requests_name_tb = "requests";
 
 void db_queries_generator::to_mysql_format(const std::initializer_list<std::string*>& args) {
 	static const std::string special_symbols = "\"\'\\";
@@ -62,6 +63,15 @@ std::vector<std::string> db_queries_generator::get_db_init_queries(std::string d
 		<< "foreign key (u_to) references " << users_name_tb << "(login) on delete cascade on update cascade);";
 	reset(ostr, res);
 	
+	ostr << "create table "
+		<< "if not exists " << requests_name_tb << " ("
+		<< "u_from varchar(50),"
+		<< "u_to varchar(50),"
+		<< "primary key(u_from, u_to),"
+		<< "foreign key (u_from) references " << users_name_tb << "(login) on delete cascade on update cascade,"
+		<< "foreign key (u_to) references " << users_name_tb << "(login) on delete cascade on update cascade);";
+	reset(ostr, res);
+
 	return res;
 }
 
@@ -156,7 +166,7 @@ std::vector<std::string> db_queries_generator::get_user_profile_to_update_query(
 	ostr << "update " << users_name_tb << " set ";
 
 	bool is_first = true;
-	for (auto param : profile.fields) {
+	for (auto param : profile) {
 		if (param.second.value.has_value()) {
 			auto value = param.second.value.value();
 
