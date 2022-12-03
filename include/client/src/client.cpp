@@ -1,5 +1,5 @@
 #include "../client.hpp"
-#include "../../general/protocol v2.0/protocol_interpreter.hpp"
+#include "../../general/protocol/protocol_interpreter.hpp"
 
 FARCONN_NAMESPACE_BEGIN(client)
 

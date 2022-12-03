@@ -9,6 +9,7 @@
 #include "../../general/protocol/server_status_code.hpp"
 #include "../tools/token_generator.hpp"
 #include <unordered_set>
+#include "middleware/entities/user_profile.hpp"
 #include "../../general/logger/logger.hpp"
 #include "db_queries_generator.hpp"
 #include "../middleware/entities/users_relations_type.hpp"
@@ -30,14 +31,13 @@ public:
 	server_status_code logout_user(const std::string&);
 
 	server_status_code get_users_relations(const std::string&, const std::string&, users_relations_type&);
-	server_status_code get_user_profile_data(const std::string&, std::vector<std::string>&);
+	server_status_code get_user_profile_data(const std::string&, user_profile&);
+
+	server_status_code update_user_profile(const std::string&, const user_profile&);
 
 	~db_responder();
 
 private:
-	template<class...Args>
-	using query_generator_t = std::vector<std::string>(*)(Args...);
-
 	struct query_components {
 		std::shared_ptr<sql::Connection> connection;
 		std::unique_ptr<sql::Statement> exec;

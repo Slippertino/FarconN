@@ -9,9 +9,8 @@
 #include "../general/tools/thread_safe_containers/thread_safe_queue.hpp"
 #include "../general/logger/logger.hpp"
 #include "../general/multithread_context/multithread_context.hpp"
-#include "protocol/command_analyzer.hpp"
-#include "protocol v2.0/protocol_interpreter.hpp"
-#include "protocol v2.0/command_builder.hpp"
+#include "protocol/protocol_interpreter.hpp"
+#include "protocol/command_builder.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 
@@ -39,7 +38,7 @@ private:
 
 private:
 	static const size_t working_flows_count;
-	static const std::unordered_map<std::string, std::function<void(server*, const command_request*, command_response*)>> command_handlers;
+	static const std::unordered_map<std::string, std::function<void(server*, const command_entity*, command_response*)>> command_handlers;
 
 	thread_safe_queue<std::pair<SOCKET, std::string>> commands_to_handle;
 

@@ -1,82 +1,62 @@
-#include "../protocol v2.0/protocol_interpreter.hpp"
+#include "../protocol/protocol_interpreter.hpp"
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-const std::regex protocol_interpreter::request_pattern = std::regex(R"(^\s*\S+(\s+-(\S+))*(\s+\S+)*)");//std::regex(R"(.*)");
-const std::regex protocol_interpreter::response_pattern = std::regex(R"(^\s*\S+\s*\d{3}\s*".*?"(\s*\S*)*)");
-
-std::shared_ptr<command_entity> protocol_interpreter::interpret(std::string query) {
+std::shared_ptr<command_entity> protocol_interpreter::interpret(const std::string& query) {
 	auto result = new command_entity();
 
-	if (std::regex_match(query, request_pattern)) {
-		result->type = command_type::REQUEST;
-		result = new command_request();
-		interpret_request(query, result);
-	}
-	else if (std::regex_match(query, response_pattern)) {
-		result->type = command_type::RESPONSE;
-		result = new command_response();
-		interpret_response(query, result);
-	}
-	else {
-		throw std::runtime_error("Некорректная команда!");
-	}
+	query_arguments args;
+	split_query(query, args);
+
+	extract_command(args, result);
+	extract_options(args, result);
+	extract_parameters(args, result);
 
 	return std::shared_ptr<command_entity>(result);
 }
 
-void protocol_interpreter::interpret_request(std::string query, command_entity* command) {
-	auto request = static_cast<command_request*>(command);
+void protocol_interpreter::split_query(const std::string& query, query_arguments& args) {
+	static const std::regex split_pattern = std::regex(R"((\".*\"|\S+))");
 
-	extract_command(query, request);
-	extract_options(query, request);
-	extract_parameters(query, request);
-}
-
-void protocol_interpreter::interpret_response(std::string query, command_entity* command) {
-	auto response = static_cast<command_response*>(command);
-
-	extract_command(query, response);
-	extract_status(query, response);
-	extract_parameters(query, response);
-}
-
-void protocol_interpreter::extract_command(std::string& query, command_entity* command) {
-	static const std::regex command_pattern = std::regex(R"((^\s*(\S+))\s*(.*))");
-	command->command = find_submatches(query, command_pattern, 2)[0];
-	query = find_submatches(query, command_pattern, 3)[0];
-}
-
-void protocol_interpreter::extract_parameters(std::string& query, command_entity* command) {
-	static const std::regex params_pattern = std::regex(R"((\S+))");
-
-	for (auto& param : find_submatches(query, params_pattern, 1)) {
-		command->params.push_back(param);
-	}
-
-	query.clear();
-}
-
-void protocol_interpreter::extract_options(std::string& query, command_request* command) {
-	static const std::regex options_pattern = std::regex(R"((\s+-(\S+)))");
-	static const std::regex options_cut_pattern = std::regex(R"((\s(\w.*)))");
-
-	for (auto& opt : find_submatches(query, options_pattern, 2)) {
-		command->options.insert({ command->options.size(), opt });
-	}
-
-	if (command->options.size()) {
-		query = find_submatches(query, options_cut_pattern, 2)[0];
+	for (auto& param : find_submatches(query, split_pattern, 1)) {
+		args.push_back(param);
 	}
 }
 
-void protocol_interpreter::extract_status(std::string& query, command_response* command) {
-	static const std::regex status_pattern = std::regex(R"((\d{3})\s*(\"(.*?)\")\s*(.*))");
+void protocol_interpreter::extract_command(query_arguments& args, command_entity* command) {
+	if (args.empty()) {
+		throw std::runtime_error("Недопустимый запрос!");
+	}
 
-	command->status.first = std::atoi(find_submatches(query, status_pattern, 1)[0].c_str());
-	command->status.second = find_submatches(query, status_pattern, 3)[0];
+	command->command = args.front();
+	args.pop_front();
+}
 
-	query = find_submatches(query, status_pattern, 4)[0];
+void protocol_interpreter::extract_options(query_arguments& args, command_entity* command) {
+	static const std::regex option_pattern = std::regex(R"(-\S+)");
+	
+	auto& options = command->options;
+
+	while (std::regex_match(args.front(), option_pattern)) {
+		auto opt = args.front();
+		opt = opt.substr(1);
+		options.insert({ options.size(), opt });
+		args.pop_front();
+	}
+}
+
+void protocol_interpreter::extract_parameters(query_arguments& args, command_entity* command) {
+	static const std::regex composite_param_pattern = std::regex(R"(\"(.*)\")");
+
+	for (auto& param : args) {
+		auto content = find_submatches(param, composite_param_pattern, 1);
+
+		content.empty()
+			? command->params.push_back(param)
+			: command->params.push_back(content[0]);
+	}
+
+	args.clear();
 }
 
 std::vector<std::string> protocol_interpreter::find_submatches(const std::string& query, const std::regex& pattern, int group_id) {

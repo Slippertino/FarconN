@@ -136,7 +136,7 @@ server_status_code db_responder::login_user(const std::string& login, const std:
 				code = server_status_code::SYS__OKEY;
 			}
 			else {
-				code = server_status_code::LOGIN__ALREADY_LOGGED_IN;
+				code = server_status_code::LOGIN__ALREADY_LOGGED_IN_ERROR;
 			}
 		}
 		else {
@@ -211,7 +211,7 @@ server_status_code db_responder::get_users_relations(const std::string& login_us
 	return code;
 }
 
-server_status_code db_responder::get_user_profile_data(const std::string& login, std::vector<std::string>& data) {
+server_status_code db_responder::get_user_profile_data(const std::string& login, user_profile& data) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_user_profile_data_query(login);
 
@@ -226,18 +226,45 @@ server_status_code db_responder::get_user_profile_data(const std::string& login,
 			result->beforeFirst(); 
 			result->next();
 
-			data.push_back(result->getString("login"));
-			data.push_back(result->getString("password"));
-			data.push_back(result->getString("name"));
-			data.push_back(result->getString("phone"));
-			data.push_back(result->getString("email"));
-			data.push_back(result->getString("self"));
+			for (auto& cur : data.fields) {
+				std::string temp = result->getString(cur.second.name);
+				utf8_encoder::from_utf8_to_local(temp);
+				cur.second.value = temp;
+			}
 
 			code = server_status_code::SYS__OKEY;
 		} 
 		else {
-			code = server_status_code::SYS__NONEXISTEN_USER;
+			code = server_status_code::SYS__NONEXISTEN_USER_ERROR;
 		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::update_user_profile(const std::string& token, const user_profile& profile) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_user_profile_to_update_query(token, profile);
+
+	server_status_code code;
+
+	try {
+		auto count = comps.exec->executeUpdate(queries[0]);
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const sql::SQLException& ex) {
+		code = (ex.getErrorCode() == 1062)
+			? server_status_code::SIGNUP__EXISTING_LOGIN_ERROR
+			: server_status_code::SYS__INTERNAL_SERVER_ERROR;
+
+		LOG() << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
 	}
 	catch (const std::exception& ex) {
 		LOG() << "Database : " << ex.what() << "\n";

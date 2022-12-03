@@ -4,6 +4,8 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
+#include "../general/tools/utf8_encoder.hpp"
+#include "../middleware/entities/user_profile.hpp"
 #include "../../general/tools/macro.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
@@ -19,6 +21,7 @@ public:
 	static std::vector<std::string> get_logout_user_query(std::string);
 	static std::vector<std::string> get_are_users_in_contacts_query(std::string, std::string);
 	static std::vector<std::string> get_user_profile_data_query(std::string);
+	static std::vector<std::string> get_user_profile_to_update_query(std::string, user_profile);
 
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);

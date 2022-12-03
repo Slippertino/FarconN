@@ -9,6 +9,8 @@ void db_queries_generator::to_mysql_format(const std::initializer_list<std::stri
 	static const std::string special_symbols = "\"\'\\";
 
 	std::for_each(args.begin(), args.end(), [&](std::string* val) {
+		utf8_encoder::from_local_to_utf8(*val);
+
 		for (auto i = 0; i < val->size(); ++i) {
 			if (special_symbols.find((*val)[i]) != std::string::npos) {
 				val->insert(i++, "\\");
@@ -140,6 +142,38 @@ std::vector<std::string> db_queries_generator::get_user_profile_data_query(std::
 
 	ostr << "select * from " << users_name_tb << " where "
 		 << "login = " << Q(login) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_user_profile_to_update_query(std::string token, user_profile profile) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &token });
+
+	ostr << "update " << users_name_tb << " set ";
+
+	bool is_first = true;
+	for (auto param : profile.fields) {
+		if (param.second.value.has_value()) {
+			auto value = param.second.value.value();
+
+			to_mysql_format({ &value });
+
+			if (!is_first) {
+				ostr << ",";
+			}
+			else {
+				is_first = false;
+			}
+
+			ostr << param.second.name << " = " << Q(value) << " ";
+		}
+	}
+
+	ostr << "where id = " << Q(token) << ";";
 	reset(ostr, res);
 
 	return res;

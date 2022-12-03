@@ -4,14 +4,14 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 const size_t server::working_flows_count = 1;
 
-const std::unordered_map<std::string, std::function<void(server*, const command_request*, command_response*)>> server::command_handlers =
+const std::unordered_map<std::string, std::function<void(server*, const command_entity*, command_response*)>> server::command_handlers =
 {
-	{"echo",         [&](server* obj, const command_request* in, command_response* out) { obj->repository.handle_echo(in, out); }},
-	{"signup",       [&](server* obj, const command_request* in, command_response* out) { obj->repository.handle_signup(in, out); }},
-	{"login",        [&](server* obj, const command_request* in, command_response* out) { obj->repository.handle_login(in, out); }},
-	{"logout",       [&](server* obj, const command_request* in, command_response* out) { obj->repository.handle_logout(in, out); }},
-	{"profile_get",  [&](server* obj, const command_request* in, command_response* out) { obj->repository.handle_profile_get(in, out); }},
-	{"profile_set",  [&](server* obj, const command_request* in, command_response* out) { obj->repository.handle_profile_set(in, out); }},
+	{"echo",         [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_echo(in, out); }},
+	{"signup",       [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_signup(in, out); }},
+	{"login",        [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_login(in, out); }},
+	{"logout",       [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_logout(in, out); }},
+	{"profile_get",  [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_profile_get(in, out); }},
+	{"profile_set",  [&](server* obj, const command_entity* in, command_response* out) { obj->repository.handle_profile_set(in, out); }},
 };
 
 server::server(const server_config& config) : 
@@ -58,27 +58,31 @@ void server::handle_command() {
 
 	LOG() << "Входящая команда: " << socket_command.second << "\n";
 
-	std::shared_ptr<command_entity> req;
+	std::shared_ptr<command_entity> com;
 	auto resp = std::make_shared<command_response>();
 
 	try {
-		req = protocol_interpreter::interpret(socket_command.second);
-		const auto request = static_cast<command_request*>(req.get());
+		com = protocol_interpreter::interpret(socket_command.second);
 
-		if (command_handlers.find(req->command) != command_handlers.end()) {
-			command_handlers.at(req->command)(this, request, resp.get());
+		if (command_handlers.find(com->command) != command_handlers.end()) {
+			command_handlers.at(com->command)(this, com.get(), resp.get());
+			resp->command = com->command;
+			resp->options = com->options;
 		}
 		else {
-			LOG() << "Ошибка! Неизвестная команда: " << req->command << "\n";
-			resp->status = status_code_interpreter::interpret(server_status_code::SYS__INVALID_COMMAND);
+			LOG() << "Ошибка! Неизвестная команда: " << com->command << "\n";
+			resp->status = status_code_interpreter::interpret(server_status_code::SYS__INVALID_COMMAND_ERROR);
 		}
 	}
 	catch (const std::exception& ex) {
 		LOG() << "Недопустимый ввод! " << ex.what() << "\n";
-		resp->status = status_code_interpreter::interpret(server_status_code::SYS__INVALID_COMMAND);
+		resp->status = status_code_interpreter::interpret(server_status_code::SYS__INVALID_COMMAND_ERROR);
 	}
-	
-	command_builder builder(*resp.get());
+
+	com->clear();
+	resp->to_entity(*com);
+
+	command_builder builder(*com);
 
 	std::string message_to_send;
 	builder.build(message_to_send);
