@@ -37,7 +37,7 @@ void protocol_interpreter::extract_options(query_arguments& args, command_entity
 	
 	auto& options = command->options;
 
-	while (std::regex_match(args.front(), option_pattern)) {
+	while (!args.empty() && std::regex_match(args.front(), option_pattern)) {
 		auto opt = args.front();
 		opt = opt.substr(1);
 		options.insert({ options.size(), opt });
