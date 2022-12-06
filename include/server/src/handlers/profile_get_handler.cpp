@@ -19,7 +19,7 @@ void profile_get_handler::execute() {
 
 	auto& session_token = params[0];
 
-	SERVER_ASSERT(out, main->sessions.find(session_token) == main->sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
+	SERVER_ASSERT_EX(out, main->sessions.find(session_token) == main->sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
 
 	auto& user_login = params[1];
 
@@ -30,11 +30,11 @@ void profile_get_handler::execute() {
 
 	code = database.get_users_relations(session.login, user_login, rels);
 
-	SERVER_ASSERT(out, code != server_status_code::SYS__OKEY, code)
+	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
 
 	code = database.get_user_profile_data(user_login, profile_fields);
 
-	SERVER_ASSERT(out, code != server_status_code::SYS__OKEY, code)
+	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
 
 	out->status = status_code_interpreter::interpret(server_status_code::SYS__OKEY);
 

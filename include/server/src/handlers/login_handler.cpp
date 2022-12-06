@@ -20,7 +20,7 @@ void login_handler::execute() {
 	auto& login = params[0];
 	auto& pass = params[1];
 
-	SERVER_ASSERT(
+	SERVER_ASSERT_EX(
 		out,
 		!login_format_validator::is_valid(login) || !password_format_validator::is_valid(pass),
 		server_status_code::LOGIN__INVALID_DATA_ERROR

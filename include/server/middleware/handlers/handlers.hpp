@@ -5,3 +5,4 @@
 #include "logout_handler.hpp"
 #include "profile_get_handler.hpp"
 #include "profile_set_handler.hpp"
+#include "invite_handler.hpp"

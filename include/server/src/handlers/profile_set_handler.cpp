@@ -19,15 +19,15 @@ void profile_set_handler::execute() {
 
 	auto& session_token = params[0];
 
-	SERVER_ASSERT(out, main->sessions.find(session_token) == main->sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
+	SERVER_ASSERT_EX(out, main->sessions.find(session_token) == main->sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
 
 	auto& session = main->sessions[session_token];
 
-	SERVER_ASSERT(out, options.empty(), server_status_code::SYS__OKEY)
+	SERVER_ASSERT_EX(out, options.empty(), server_status_code::SYS__OKEY)
 
 	for (auto& opt : options) {
-		SERVER_ASSERT(out, profile_fields.find(opt.second) == profile_fields.end(), server_status_code::SYS__INVALID_COMMAND_ERROR)
-		SERVER_ASSERT(out, !profile_fields[opt.second].validator(params[opt.first + 1]), server_status_code::PROFILE__INVALID_DATA_TO_SET_ERROR)
+		SERVER_ASSERT_EX(out, profile_fields.find(opt.second) == profile_fields.end(), server_status_code::SYS__INVALID_COMMAND_ERROR)
+		SERVER_ASSERT_EX(out, !profile_fields[opt.second].validator(params[opt.first + 1]), server_status_code::PROFILE__INVALID_DATA_TO_SET_ERROR)
 
 		profile_fields[opt.second].value = in->params[opt.first + 1];
 	}

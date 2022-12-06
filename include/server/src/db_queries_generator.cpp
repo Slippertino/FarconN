@@ -189,4 +189,87 @@ std::vector<std::string> db_queries_generator::get_user_profile_to_update_query(
 	return res;
 }
 
+std::vector<std::string> db_queries_generator::get_is_request_exist_query(std::string lufrom, std::string luto) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &lufrom, &luto });
+
+	ostr << "select * from " << requests_name_tb << " where "
+		 << "u_from = " << Q(lufrom) << " and "
+		 << "u_to = " << Q(luto) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_create_request_query(std::string lufrom, std::string luto) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &lufrom, &luto });
+
+	ostr << "insert into " << requests_name_tb << "(u_from, u_to) values "
+		<< "( " << Q(lufrom) << "," << Q(luto) << ");";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_delete_request_query(std::string lufrom, std::string luto) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &lufrom, &luto });
+
+	ostr << "delete from " << requests_name_tb << " where "
+		 << "u_from = " << Q(lufrom) << " and "
+		 << "u_to = " << Q(luto) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+
+std::vector<std::string> db_queries_generator::get_is_contact_exist_query(std::string lufrom, std::string luto) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &lufrom, &luto });
+
+	ostr << "select * from " << contacts_name_tb << " where "
+		<< "u_from = " << Q(lufrom) << " and "
+		<< "u_to = " << Q(luto) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_create_contact_query(std::string lufrom, std::string luto) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &lufrom, &luto });
+
+	ostr << "insert into " << contacts_name_tb << "(u_from, u_to) values "
+		<< "( " << Q(lufrom) << "," << Q(luto) << ");";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_delete_contact_query(std::string lufrom, std::string luto) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &lufrom, &luto });
+
+	ostr << "delete from " << contacts_name_tb << " where "
+		<< "u_from = " << Q(lufrom) << " and "
+		<< "u_to = " << Q(luto) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
 FARCONN_NAMESPACE_END

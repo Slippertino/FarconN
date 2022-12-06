@@ -13,7 +13,7 @@ void server_middleware::setup() {
 }
 
 void server_middleware::handle(const command_entity* in, command_response* out) {
-	SERVER_ASSERT(out, command_handlers.find(in->command) == command_handlers.end(), server_status_code::SYS__INVALID_COMMAND_ERROR)
+	SERVER_ASSERT_EX(out, command_handlers.find(in->command) == command_handlers.end(), server_status_code::SYS__INVALID_COMMAND_ERROR)
 
 	command_handlers.at(in->command)(this, in, out);
 }
@@ -25,6 +25,7 @@ const std::unordered_map<std::string, std::function<void(server_middleware*, con
 	{ "logout",       [&](server_middleware* main, const command_entity* in, command_response* out) { logout_handler(main, in, out).handle();      } },
 	{ "profile_get",  [&](server_middleware* main, const command_entity* in, command_response* out) { profile_get_handler(main, in, out).handle(); } },
 	{ "profile_set",  [&](server_middleware* main, const command_entity* in, command_response* out) { profile_set_handler(main, in, out).handle(); } },
+	{ "invite",       [&](server_middleware* main, const command_entity* in, command_response* out) { invite_handler(main, in, out).handle();      } },
 };
 
 FARCONN_NAMESPACE_END

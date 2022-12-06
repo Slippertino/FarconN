@@ -276,6 +276,147 @@ server_status_code db_responder::update_user_profile(const std::string& token, c
 	return code;
 }
 
+server_status_code db_responder::is_request_exist(const std::string& lufrom, const std::string& luto, bool& res) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_is_request_exist_query(lufrom, luto);
+
+	server_status_code code;
+
+	try {
+		auto result = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		res = result->rowsCount();
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::create_request(const std::string& lufrom, const std::string& luto) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_create_request_query(lufrom, luto);
+
+	server_status_code code;
+
+	try {
+		auto count = comps.exec->executeUpdate(queries[0]);
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const sql::SQLException& ex) {
+		code = (ex.getErrorCode() == 1062)
+			? server_status_code::REQUEST__ALREADY_EXIST
+			: server_status_code::SYS__INTERNAL_SERVER_ERROR;
+
+		LOG() << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::delete_request(const std::string& lufrom, const std::string& luto) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_delete_request_query(lufrom, luto);
+
+	server_status_code code;
+
+	try {
+		auto count = comps.exec->executeUpdate(queries[0]);
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::is_contact_exist(const std::string& lufrom, const std::string& luto, bool& res) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_is_contact_exist_query(lufrom, luto);
+
+	server_status_code code;
+
+	try {
+		auto result = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		res = result->rowsCount();
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::create_contact(const std::string& lufrom, const std::string& luto) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_create_contact_query(lufrom, luto);
+
+	server_status_code code;
+
+	try {
+		auto count = comps.exec->executeUpdate(queries[0]);
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::delete_contact(const std::string& lufrom, const std::string& luto) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_delete_contact_query(lufrom, luto);
+
+	server_status_code code;
+
+	try {
+		auto count = comps.exec->executeUpdate(queries[0]);
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
 db_responder::~db_responder() {
 	while (!connections.empty()) {
 		auto con = connections.wait_and_erase();

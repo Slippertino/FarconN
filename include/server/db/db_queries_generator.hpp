@@ -25,6 +25,14 @@ public:
 	static std::vector<std::string> get_user_profile_data_query(std::string);
 	static std::vector<std::string> get_user_profile_to_update_query(std::string, user_profile);
 
+	static std::vector<std::string> get_is_request_exist_query(std::string, std::string);
+	static std::vector<std::string> get_create_request_query(std::string, std::string);
+	static std::vector<std::string> get_delete_request_query(std::string, std::string);
+
+	static std::vector<std::string> get_is_contact_exist_query(std::string, std::string);
+	static std::vector<std::string> get_create_contact_query(std::string, std::string);
+	static std::vector<std::string> get_delete_contact_query(std::string, std::string);
+
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);
 	static void reset(std::ostringstream&, std::vector<std::string>&);

@@ -15,7 +15,8 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-#define SERVER_ASSERT(out, condition, error_t) if(condition) { out->status = status_code_interpreter::interpret(error_t); return; }
+#define SERVER_ASSERT(out, condition) if(condition) { out->status = status_code_interpreter::interpret(server_status_code::SYS__INTERNAL_SERVER_ERROR); return; }
+#define SERVER_ASSERT_EX(out, condition, error_t) if(condition) { out->status = status_code_interpreter::interpret(error_t); return; }
 
 #define DECLARE_HANDLER(handler) friend class handler;
 
@@ -25,6 +26,7 @@ class server_middleware {
 	DECLARE_HANDLER(logout_handler)
 	DECLARE_HANDLER(profile_get_handler)
 	DECLARE_HANDLER(profile_set_handler)
+	DECLARE_HANDLER(invite_handler)
 
 public:
 	server_middleware() = delete;

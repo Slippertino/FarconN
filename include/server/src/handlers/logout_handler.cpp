@@ -20,7 +20,7 @@ void logout_handler::execute() {
 
 	auto& s_token = params[0];
 
-	SERVER_ASSERT(out, sessions.find(s_token) == sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
+	SERVER_ASSERT_EX(out, sessions.find(s_token) == sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
 
 	auto& n_token = sessions[s_token].native_token;
 
