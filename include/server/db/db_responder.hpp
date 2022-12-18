@@ -2,17 +2,17 @@
 
 #include <mutex>
 #include <queue>
+#include <unordered_set>
 #include <filesystem>
 #include <mysql/jdbc.h>
+#include "../tools/token_generator.hpp"
 #include "../config/database_config.hpp"
 #include "../general/tools/thread_safe_containers/thread_safe_queue.hpp"
 #include "../../general/protocol/server_status_code.hpp"
-#include "../tools/token_generator.hpp"
-#include <unordered_set>
-#include "middleware/entities/user_profile.hpp"
 #include "../../general/logger/logger.hpp"
 #include "db_queries_generator.hpp"
-#include "../middleware/entities/users_relations_type.hpp"
+#include "../../general/protocol/entities/entities.hpp"
+#include "../middleware/entities/entities.hpp"
 
 using namespace farconn::general;
 
@@ -42,6 +42,8 @@ public:
 	server_status_code is_contact_exist(const std::string&, const std::string&, bool&);
 	server_status_code create_contact(const std::string&, const std::string&);
 	server_status_code delete_contact(const std::string&, const std::string&);
+
+	server_status_code get_invites_list(const invites_selection&, invitations_info&);
 
 	~db_responder();
 

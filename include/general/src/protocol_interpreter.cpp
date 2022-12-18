@@ -16,7 +16,7 @@ std::shared_ptr<command_entity> protocol_interpreter::interpret(const std::strin
 }
 
 void protocol_interpreter::split_query(const std::string& query, query_arguments& args) {
-	static const std::regex split_pattern = std::regex(R"((\".*\"|\S+))");
+	static const std::regex split_pattern = std::regex(R"((\b\".*\"|\S+))");
 
 	for (auto& param : find_submatches(query, split_pattern, 1)) {
 		args.push_back(param);
@@ -37,7 +37,7 @@ void protocol_interpreter::extract_options(query_arguments& args, command_entity
 	
 	auto& options = command->options;
 
-	while (std::regex_match(args.front(), option_pattern)) {
+	while (!args.empty() && std::regex_match(args.front(), option_pattern)) {
 		auto opt = args.front();
 		opt = opt.substr(1);
 		options.insert({ options.size(), opt });

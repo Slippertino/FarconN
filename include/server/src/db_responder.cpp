@@ -417,6 +417,41 @@ server_status_code db_responder::delete_contact(const std::string& lufrom, const
 	return code;
 }
 
+server_status_code db_responder::get_invites_list(const invites_selection& selection, invitations_info& info) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_invites_list_query(selection);
+
+	auto& list_type = selection.invitation_type_name;
+
+	server_status_code code;
+
+	try {
+		auto res = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		res->beforeFirst(); res->next();
+		while (!res->isAfterLast()) {
+			auto login = res->getString("login");
+			auto name = res->getString("name");
+
+			info[list_type].push_back({ login, name });
+
+			res->next();
+		}
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
 db_responder::~db_responder() {
 	while (!connections.empty()) {
 		auto con = connections.wait_and_erase();

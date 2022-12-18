@@ -5,7 +5,7 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-profile_get_handler::profile_get_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : profile_handler(sm, ce, cr)
+profile_get_handler::profile_get_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : profile_handler(sm, ce, cr, true)
 { }
 
 bool profile_get_handler::is_command_valid() {
@@ -15,28 +15,19 @@ bool profile_get_handler::is_command_valid() {
 void profile_get_handler::execute() {
 	auto& options = in->options;
 	auto& params = in->params;
-	auto& database = main->database;
-
-	auto& session_token = params[0];
-
-	SERVER_ASSERT_EX(out, main->sessions.find(session_token) == main->sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
 
 	auto& user_login = params[1];
-
-	auto& session = main->sessions[session_token];
 
 	server_status_code code;
 	users_relations_type rels;
 
-	code = database.get_users_relations(session.login, user_login, rels);
+	code = db->get_users_relations(session->login, user_login, rels);
 
 	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
 
-	code = database.get_user_profile_data(user_login, profile_fields);
+	code = db->get_user_profile_data(user_login, profile_fields);
 
 	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
-
-	out->status = status_code_interpreter::interpret(server_status_code::SYS__OKEY);
 
 	apply_filter(rels);
 
@@ -47,6 +38,8 @@ void profile_get_handler::execute() {
 			out->params.push_back(field.value.value());
 		}
 	}
+
+	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
 }
 
 FARCONN_NAMESPACE_END

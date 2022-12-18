@@ -2,7 +2,12 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-profile_handler::profile_handler(class server_middleware* sm, const command_entity* ce, command_response* cr) : handler(sm, ce, cr)
+profile_handler::profile_handler(
+	class server_middleware* sm, 
+	const command_entity* ce, 
+	command_response* cr, 
+	bool auth_required
+) : handler(sm, ce, cr, auth_required)
 { }
 
 void profile_handler::apply_filter(users_relations_type type) {

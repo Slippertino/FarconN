@@ -5,7 +5,7 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-signup_handler::signup_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : handler(sm, ce, cr)
+signup_handler::signup_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : handler(sm, ce, cr, false)
 { }
 
 bool signup_handler::is_command_valid() {
@@ -15,7 +15,6 @@ bool signup_handler::is_command_valid() {
 void signup_handler::execute() {
 	auto& options = in->options;
 	auto& params = in->params;
-	auto& database = main->database;
 
 	auto& login = params[0];
 	auto& pass = params[1];
@@ -26,7 +25,7 @@ void signup_handler::execute() {
 	std::lock_guard<std::mutex> locker(main->users_locker);
 
 	out->status = status_code_interpreter::interpret(
-		database.signup_user(login, pass)
+		db->signup_user(login, pass)
 	);
 }
 

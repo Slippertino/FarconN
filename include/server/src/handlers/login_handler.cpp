@@ -5,7 +5,7 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-login_handler::login_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : handler(sm, ce, cr)
+login_handler::login_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : handler(sm, ce, cr, false)
 { }
 
 bool login_handler::is_command_valid() {
@@ -15,7 +15,6 @@ bool login_handler::is_command_valid() {
 void login_handler::execute() {
 	auto& options = in->options;
 	auto& params = in->params;
-	auto& database = main->database;
 
 	auto& login = params[0];
 	auto& pass = params[1];
@@ -28,7 +27,7 @@ void login_handler::execute() {
 
 	client_session new_session;
 
-	auto result = database.login_user(login, pass, new_session.native_token);
+	auto result = db->login_user(login, pass, new_session.native_token);
 	out->status = status_code_interpreter::interpret(result);
 
 	if (result == server_status_code::SYS__OKEY) {
@@ -38,6 +37,7 @@ void login_handler::execute() {
 
 		out->params.push_back(token);
 
+		new_session.session_token = token;
 		new_session.login = login;
 
 		main->sessions[token] = std::move(new_session);

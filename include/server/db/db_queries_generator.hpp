@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <sstream>
 #include "../general/tools/utf8_encoder.hpp"
-#include "../middleware/entities/user_profile.hpp"
+#include "../middleware/entities/entities.hpp"
 #include "../../general/tools/macro.hpp"
 
 using namespace farconn::general;
@@ -32,6 +32,8 @@ public:
 	static std::vector<std::string> get_is_contact_exist_query(std::string, std::string);
 	static std::vector<std::string> get_create_contact_query(std::string, std::string);
 	static std::vector<std::string> get_delete_contact_query(std::string, std::string);
+
+	static std::vector<std::string> get_invites_list_query(invites_selection);
 
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);

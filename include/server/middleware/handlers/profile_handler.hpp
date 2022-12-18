@@ -8,7 +8,7 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 class profile_handler : public handler {
 public:
-	profile_handler(class server_middleware*, const command_entity*, command_response*);
+	profile_handler(class server_middleware*, const command_entity*, command_response*, bool);
 
 protected:
 	void apply_filter(users_relations_type);

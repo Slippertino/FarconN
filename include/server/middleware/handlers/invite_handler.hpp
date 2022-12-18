@@ -23,8 +23,6 @@ private:
 	using option_handler = std::function<void(invite_handler*, const std::string&, const std::string&)>;
 
 	static const std::unordered_map<std::string, option_handler> option_handlers_map;
-
-	db_responder& database;
 };
 
 FARCONN_NAMESPACE_END

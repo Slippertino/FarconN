@@ -3,13 +3,11 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include "entities/client_session.hpp"
 #include "../db/db_responder.hpp"
 #include "../general/protocol/status_code_interpreter.hpp"
 #include "../general/validators/format_validators.hpp"
 #include "../tools/token_generator.hpp"
-#include "entities/users_relations_type.hpp"
-#include "entities/user_profile.hpp"
+#include "entities/entities.hpp"
 #include "protocol/command_entities.hpp"
 #include "handlers/handlers.hpp"
 
@@ -21,12 +19,14 @@ FARCONN_NAMESPACE_BEGIN(server)
 #define DECLARE_HANDLER(handler) friend class handler;
 
 class server_middleware {
+	DECLARE_HANDLER(handler)
 	DECLARE_HANDLER(signup_handler)
 	DECLARE_HANDLER(login_handler)
 	DECLARE_HANDLER(logout_handler)
 	DECLARE_HANDLER(profile_get_handler)
 	DECLARE_HANDLER(profile_set_handler)
 	DECLARE_HANDLER(invite_handler)
+	DECLARE_HANDLER(invites_list_handler)
 
 public:
 	server_middleware() = delete;
