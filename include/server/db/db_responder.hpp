@@ -45,6 +45,8 @@ public:
 
 	server_status_code get_invites_list(const invites_selection&, invitations_info&);
 
+	server_status_code get_contacts_list(const contacts_selection&, contacts_info&);
+
 	~db_responder();
 
 private:

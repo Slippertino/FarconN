@@ -8,3 +8,4 @@
 #include "profile_set_handler.hpp"
 #include "invite_handler.hpp"
 #include "invites_list_handler.hpp"
+#include "contacts_list_handler.hpp"

@@ -34,6 +34,7 @@ public:
 	static std::vector<std::string> get_delete_contact_query(std::string, std::string);
 
 	static std::vector<std::string> get_invites_list_query(invites_selection);
+	static std::vector<std::string> get_contacts_list_query(contacts_selection);
 
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);

@@ -294,4 +294,24 @@ std::vector<std::string> db_queries_generator::get_invites_list_query(invites_se
 	return res;
 }
 
+std::vector<std::string> db_queries_generator::get_contacts_list_query(contacts_selection selection) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &selection.login });
+
+	ostr
+		<< "select login" << "," << "name "
+		<< "from " << contacts_name_tb << " "
+		<< "inner join " << users_name_tb << " on "
+		<< users_name_tb << ".login " << " = " << contacts_name_tb << "." << "u_from" << " or " 
+		<< users_name_tb << ".login " << " = " << contacts_name_tb << "." << "u_to" << " "
+		<< "where login <> " << Q(selection.login) << " "
+		<< "order by name asc" << " "
+		<< "limit " << selection.offset << "," << selection.limit << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
 FARCONN_NAMESPACE_END

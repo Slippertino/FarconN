@@ -21,4 +21,8 @@ struct invites_selection : selection_base {
 	std::string filtration_column_name;
 };
 
+struct contacts_selection : selection_base { 
+	std::string login;
+};
+
 FARCONN_NAMESPACE_END

@@ -11,6 +11,8 @@ const std::unordered_map<server_status_code, std::string> status_code_interprete
 	{ server_status_code::SYS__INVALID_COMMAND_ERROR,		  "Неверная команда!"										},
 	{ server_status_code::SYS__INVALID_TOKEN_ERROR,			  "Недопустимый сессионный токен пользователя!"				},
 	{ server_status_code::SYS__NONEXISTEN_USER_ERROR,		  "Неизвестный пользователь!"								},
+	{ server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR,	  "Недопустимое значение смещения в выборке!"				},
+	{ server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR ,	  "Недопустимое значение количества записей в выборке!"		},
 
 	{ server_status_code::SIGNUP__EXISTING_LOGIN_ERROR,		  "Данный логин уже существует!"							},
 	{ server_status_code::SIGNUP__INVALID_LOGIN_ERROR,		  "Неверный формат логина!"									},
@@ -23,7 +25,7 @@ const std::unordered_map<server_status_code, std::string> status_code_interprete
 
 	{ server_status_code::REQUEST__NONEXISTEN_REQUEST_ERROR,  "Несуществующая заявка!"                                  },
 	{ server_status_code::REQUEST__ALREADY_IN_CONTACTS_ERROR, "Заявленный пользователь либо в ваших контактах, либо Вы!" },
-	{ server_status_code::REQUEST__ALREADY_EXIST,             "Заявка в контакты уже существует!" },
+	{ server_status_code::REQUEST__ALREADY_EXIST_ERROR,       "Заявка в контакты уже существует!" },
 
 	{ server_status_code::SYS__INTERNAL_SERVER_ERROR,         "Ошибка на стороне сервера!"					            },
 };

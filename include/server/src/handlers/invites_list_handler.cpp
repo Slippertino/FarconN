@@ -46,12 +46,22 @@ void invites_list_handler::execute() {
 		selection.filtration_column_name = desc.first;
 		selection.selection_column_name = desc.second;
 
-		if (!offsetStr.empty()) {
-			selection.offset = std::stoi(offsetStr);
+		try {
+			if (!offsetStr.empty()) {
+				selection.offset = std::stoi(offsetStr);
+			}
+		}
+		catch (...) {
+			SERVER_ASSERT_EX(out, true, server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR);
 		}
 
-		if (!limitStr.empty()) {
-			selection.limit = std::stoi(limitStr);
+		try {
+			if (!limitStr.empty()) {
+				selection.limit = std::stoi(limitStr);
+			}
+		}
+		catch (...) {
+			SERVER_ASSERT_EX(out, true, server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR);
 		}
 
 		auto code = db->get_invites_list(
