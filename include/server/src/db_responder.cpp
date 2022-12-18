@@ -276,9 +276,9 @@ server_status_code db_responder::update_user_profile(const std::string& token, c
 	return code;
 }
 
-server_status_code db_responder::is_request_exist(const std::string& lufrom, const std::string& luto, bool& res) {
+server_status_code db_responder::check_request_existence(const std::string& lufrom, const std::string& luto, bool& res) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_is_request_exist_query(lufrom, luto);
+	auto queries = db_queries_generator::get_check_request_existence_query(lufrom, luto);
 
 	server_status_code code;
 
@@ -350,9 +350,12 @@ server_status_code db_responder::delete_request(const std::string& lufrom, const
 	return code;
 }
 
-server_status_code db_responder::is_contact_exist(const std::string& lufrom, const std::string& luto, bool& res) {
+server_status_code db_responder::check_contact_existence(const std::string& login, const std::string& contact_login, bool& res) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_is_contact_exist_query(lufrom, luto);
+	auto queries = db_queries_generator::get_check_contact_existence_query(
+		login,
+		contact_login
+	);
 
 	server_status_code code;
 
@@ -396,9 +399,12 @@ server_status_code db_responder::create_contact(const std::string& lufrom, const
 	return code;
 }
 
-server_status_code db_responder::delete_contact(const std::string& lufrom, const std::string& luto) {
+server_status_code db_responder::delete_contact(const std::string& login, const std::string& contact_login) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_delete_contact_query(lufrom, luto);
+	auto queries = db_queries_generator::get_delete_contact_query(
+		login,
+		contact_login
+	);
 
 	server_status_code code;
 

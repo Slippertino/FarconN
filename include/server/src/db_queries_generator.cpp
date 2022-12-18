@@ -189,7 +189,7 @@ std::vector<std::string> db_queries_generator::get_user_profile_to_update_query(
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_is_request_exist_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_check_request_existence_query(std::string lufrom, std::string luto) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
@@ -231,15 +231,15 @@ std::vector<std::string> db_queries_generator::get_delete_request_query(std::str
 }
 
 
-std::vector<std::string> db_queries_generator::get_is_contact_exist_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_check_contact_existence_query(std::string login, std::string contact_login) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lufrom, &luto });
+	to_mysql_format({ &login, &contact_login });
 
 	ostr << "select * from " << contacts_name_tb << " where "
-		<< "u_from = " << Q(lufrom) << " and "
-		<< "u_to = " << Q(luto) << ";";
+		<< "(u_from = " << Q(login) << " and " << "u_to = " << Q(contact_login) << ") or "
+		<< "(u_from = " << Q(contact_login) << " and " << "u_to = " << Q(login) << ");";
 	reset(ostr, res);
 
 	return res;
@@ -258,15 +258,16 @@ std::vector<std::string> db_queries_generator::get_create_contact_query(std::str
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_delete_contact_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_delete_contact_query(std::string login, std::string contact_login) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lufrom, &luto });
+	to_mysql_format({ &login, &contact_login });
 
 	ostr << "delete from " << contacts_name_tb << " where "
-		<< "u_from = " << Q(lufrom) << " and "
-		<< "u_to = " << Q(luto) << ";";
+		<< "(u_from = " << Q(login) << " and " << "u_to = " << Q(contact_login) << ") or "
+		<< "(u_from = " << Q(contact_login) << " and " << "u_to = " << Q(login) << ");";
+
 	reset(ostr, res);
 
 	return res;

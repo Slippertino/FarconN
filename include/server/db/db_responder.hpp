@@ -35,11 +35,11 @@ public:
 
 	server_status_code update_user_profile(const std::string&, const user_profile&);
 
-	server_status_code is_request_exist(const std::string&, const std::string&, bool&);
+	server_status_code check_request_existence(const std::string&, const std::string&, bool&);
 	server_status_code create_request(const std::string&, const std::string&);
 	server_status_code delete_request(const std::string&, const std::string&);
 
-	server_status_code is_contact_exist(const std::string&, const std::string&, bool&);
+	server_status_code check_contact_existence(const std::string&, const std::string&, bool&);
 	server_status_code create_contact(const std::string&, const std::string&);
 	server_status_code delete_contact(const std::string&, const std::string&);
 
