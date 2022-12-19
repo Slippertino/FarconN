@@ -47,6 +47,8 @@ public:
 
 	server_status_code get_contacts_list(const contacts_selection&, contacts_info&);
 
+	server_status_code get_users_searching_list(const std::string&, std::list<primitive_user_info>&);
+
 	~db_responder();
 
 private:

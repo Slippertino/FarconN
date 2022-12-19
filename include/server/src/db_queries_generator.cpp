@@ -85,6 +85,31 @@ std::vector<std::string> db_queries_generator::get_users_tokens_query() {
 	return res;
 }
 
+std::vector<std::string> db_queries_generator::get_users_searching_list_query(const std::string& login, std::vector<std::string> columns) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	for (auto& col : columns) {
+		to_mysql_format({ &col });
+	}
+
+	ostr << "select " << columns[0];
+	for (auto i = 1; i < columns.size(); ++i) {
+		ostr << "," << columns[i];
+	}
+	ostr << " from " << users_name_tb << " where login <> " << Q(login) << " and login not in (";
+
+	ostr 
+		<< "select u_from from " << contacts_name_tb << " where u_to = " << Q(login) << " union "
+		<< "select u_to from " << contacts_name_tb << " where u_from = " << Q(login) << " union "
+		<< "select u_from from " << requests_name_tb << " where u_to = " << Q(login) << " union "
+		<< "select u_to from " << requests_name_tb << " where u_from = " << Q(login) << ")";
+
+	reset(ostr, res);
+
+	return res;
+}
+
 std::vector<std::string> db_queries_generator::get_add_user_query(std::string id, std::string login, std::string password) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
@@ -130,13 +155,18 @@ std::vector<std::string> db_queries_generator::get_logout_user_query(std::string
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_are_users_in_contacts_query(std::string lu1, std::string lu2) {
+std::vector<std::string> db_queries_generator::get_users_relations_query(std::string lu1, std::string lu2) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
 	to_mysql_format({ &lu1, &lu2 });
 
 	ostr << "select * from " << contacts_name_tb << " where "
+		<< "(u_from = " << Q(lu1) << " and u_to = " << Q(lu2) << ") or "
+		<< "(u_from = " << Q(lu2) << " and u_to = " << Q(lu1) << ");";
+	reset(ostr, res);
+
+	ostr << "select * from " << requests_name_tb << " where "
 		<< "(u_from = " << Q(lu1) << " and u_to = " << Q(lu2) << ") or "
 		<< "(u_from = " << Q(lu2) << " and u_to = " << Q(lu1) << ");";
 	reset(ostr, res);

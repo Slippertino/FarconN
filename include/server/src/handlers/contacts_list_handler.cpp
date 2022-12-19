@@ -6,7 +6,7 @@
 FARCONN_NAMESPACE_BEGIN(server)
 
 contacts_list_handler::contacts_list_handler(server_middleware* sm, const command_entity* ce, command_response* cr) :
-	handler(sm, ce, cr, true)
+	selection_handler(sm, ce, cr, true)
 { }
 
 bool contacts_list_handler::is_command_valid() {
@@ -21,26 +21,17 @@ void contacts_list_handler::execute() {
 
 	contacts_info info;
 
-	auto& offsetStr = params[1];
-	auto& limitStr = params[2];
+	SERVER_ASSERT_EX(
+		out, 
+		try_convert_to_offset(params[1], &selection) != server_status_code::SYS__OKEY, 
+		server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR
+	)
 
-	try {
-		if (!offsetStr.empty()) {
-			selection.offset = std::stoi(offsetStr);
-		}
-	}
-	catch (...) {
-		SERVER_ASSERT_EX(out, true, server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR);
-	}
-
-	try {
-		if (!limitStr.empty()) {
-			selection.limit = std::stoi(limitStr);
-		}
-	}
-	catch (...) {
-		SERVER_ASSERT_EX(out, true, server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR);
-	}
+	SERVER_ASSERT_EX(
+		out, 
+		try_convert_to_limit(params[2], &selection) != server_status_code::SYS__OKEY, 
+		server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR
+	)
 
 	auto code = db->get_contacts_list(
 		selection,

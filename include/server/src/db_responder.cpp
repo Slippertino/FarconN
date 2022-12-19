@@ -183,21 +183,30 @@ server_status_code db_responder::get_users_relations(const std::string& login_us
 	}
 
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_are_users_in_contacts_query(
-		login_user1, 
+	auto queries = db_queries_generator::get_users_relations_query(
+		login_user1,
 		login_user2
 	);
+
+	auto check_for_relation = [&](users_relations_type type, size_t query_id) {
+		if (rels == users_relations_type::NONE) {
+			auto result_contacts = std::unique_ptr<sql::ResultSet>(
+				comps.exec->executeQuery(queries[query_id])
+			);
+
+			if (result_contacts->rowsCount()) {
+				rels = type;
+			}
+		}
+	};
+
+	rels = users_relations_type::NONE;
 
 	server_status_code code;
 
 	try {
-		auto result = std::unique_ptr<sql::ResultSet>(
-			comps.exec->executeQuery(queries[0])
-		);
-
-		rels = (result->rowsCount())
-			? users_relations_type::CONTACTS
-			: users_relations_type::NONE;
+		check_for_relation(users_relations_type::CONTACTS, 0);
+		check_for_relation(users_relations_type::REQUESTS, 1);
 
 		code = server_status_code::SYS__OKEY;
 	}
@@ -461,6 +470,39 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 server_status_code db_responder::get_contacts_list(const contacts_selection& selection, contacts_info& info) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_contacts_list_query(selection);
+
+	server_status_code code;
+
+	try {
+		auto res = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		res->beforeFirst(); res->next();
+		while (!res->isAfterLast()) {
+			auto login = res->getString("login");
+			auto name = res->getString("name");
+
+			info.push_back({ login, name });
+
+			res->next();
+		}
+
+		code = server_status_code::SYS__OKEY;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_users_searching_list(const std::string& login, std::list<primitive_user_info>& info) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_users_searching_list_query(login, {"login", "name"});
 
 	server_status_code code;
 

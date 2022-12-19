@@ -22,6 +22,7 @@ void profile_handler::apply_filter(users_relations_type type) {
 const std::unordered_map<users_relations_type, std::unordered_set<std::string>> profile_handler::excluded_profile_fields_map = {
 	{ users_relations_type::SELF,     { }                         },
 	{ users_relations_type::CONTACTS, { "pp" }                    },
+	{ users_relations_type::REQUESTS, { "pp", "pph", "pe", "ps" } },
 	{ users_relations_type::NONE,     { "pp", "pph", "pe", "ps" } },
 };
 

@@ -10,14 +10,17 @@
 #include <regex>
 #include "include/general/protocol/protocol_interpreter.hpp"
 #include "include/server/middleware/entities/user_profile.hpp"
+#include "include/server/tools/query_ranking_estimator.hpp"
 
 using namespace farconn::general;
+using namespace farconn::server;
 
 int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
-	farconn::server::user_profile p;
+	std::cout << query_ranking_estimator::estimate_query_ranking("slaip", "slippert") << std::endl;
+	/*farconn::server::user_profile p;
 
 	std::string name = "{[\"dfksdajf;kasdjfdsa adsf kasdj fasd\"]}";
 
@@ -59,7 +62,7 @@ int main() {
 	std::vector<std::string> params{
 		std::sregex_token_iterator{command.begin(), command.end(), reg_param, 2},
 		std::sregex_token_iterator{}
-	};
+	};*/
 
 	return 0;
 }

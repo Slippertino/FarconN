@@ -29,6 +29,7 @@ class server_middleware {
 	DECLARE_HANDLER(invites_list_handler)
 	DECLARE_HANDLER(contacts_list_handler)
 	DECLARE_HANDLER(contact_delete_handler)
+	DECLARE_HANDLER(search_handler)
 
 public:
 	server_middleware() = delete;

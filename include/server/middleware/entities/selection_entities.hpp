@@ -25,4 +25,8 @@ struct contacts_selection : selection_base {
 	std::string login;
 };
 
+struct searching_selection : selection_base { 
+	std::string query;
+};
+
 FARCONN_NAMESPACE_END

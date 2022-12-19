@@ -10,3 +10,4 @@
 #include "invites_list_handler.hpp"
 #include "contacts_list_handler.hpp"
 #include "contact_delete_handler.hpp"
+#include "search_handler.hpp"
