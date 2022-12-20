@@ -31,6 +31,7 @@ const std::unordered_map<std::string, std::function<void(server_middleware*, con
 	{ "contact_delete", [&](server_middleware* main, const command_entity* in, command_response* out) { contact_delete_handler(main, in, out).handle(); } },
 	{ "search",			[&](server_middleware* main, const command_entity* in, command_response* out) { search_handler(main, in, out).handle();			} },
 	{ "chat_create",	[&](server_middleware* main, const command_entity* in, command_response* out) { chat_create_handler(main, in, out).handle();	} },
+	{ "chat_add",		[&](server_middleware* main, const command_entity* in, command_response* out) { chat_add_handler(main, in, out).handle();		} },
 };
 
 FARCONN_NAMESPACE_END

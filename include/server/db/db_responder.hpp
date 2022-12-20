@@ -55,6 +55,10 @@ public:
 
 	server_status_code get_user_chats_count(const std::string&, uint32_t&);
 
+	server_status_code is_chat_id_valid(const std::string&, const std::string&, const std::string&);
+
+	server_status_code add_user_to_chat(const std::string&, const std::string&);
+
 	~db_responder();
 
 private:

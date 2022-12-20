@@ -458,4 +458,42 @@ std::vector<std::string> db_queries_generator::get_user_chats_count_query(std::s
 
 	return res;
 }
+
+std::vector<std::string> db_queries_generator::get_is_chat_id_valid(std::string chat_id, std::string inviter_id, std::string user_id) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &chat_id, &inviter_id });
+
+	ostr << "select id "
+		<< "from " << chats_name_tb << " "
+		<< "where type = " << Q("public") << " and " << "id = " << Q(chat_id) << ";";
+	reset(ostr, res);
+
+	ostr << "select user_id "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "where (chat_id = " << Q(chat_id) << " and " << "user_id = " << Q(inviter_id) << ");";
+	reset(ostr, res);
+
+	ostr << "select user_id "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "where chat_id = " << Q(chat_id) << " and " << "user_id = " << Q(user_id) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_add_user_to_chat(std::string chat_id, std::string user_id) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &chat_id, &user_id });
+
+	ostr << "insert into " << users_in_chats_name_tb << "(user_id, chat_id) values "
+		<< "(" << Q(user_id) << "," << Q(chat_id) << ");";
+	reset(ostr, res);
+
+	return res;
+}
+
 FARCONN_NAMESPACE_END

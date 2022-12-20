@@ -12,3 +12,4 @@
 #include "contact_delete_handler.hpp"
 #include "search_handler.hpp"
 #include "chat_create_handler.hpp"
+#include "chat_add_handler.hpp"

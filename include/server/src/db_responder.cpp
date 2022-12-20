@@ -157,14 +157,14 @@ server_status_code db_responder::logout_user(const std::string& token) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_logout_user_query(token);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
 
-		code = (count)
-			? server_status_code::SYS__OKEY
-			: server_status_code::SYS__INTERNAL_SERVER_ERROR;
+		if (!count) {
+			code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+		}
 	}
 	catch (const std::exception& ex) {
 		LOG() << "Database : " << ex.what() << "\n";
@@ -630,6 +630,80 @@ server_status_code db_responder::get_user_chats_count(const std::string& id, uin
 		results->beforeFirst();
 		results->next();
 		count = results->getUInt("count");
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::is_chat_id_valid(
+	const std::string& chat_id, 
+	const std::string& inviter_id, 
+	const std::string& user_id
+) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_is_chat_id_valid(
+		chat_id, 
+		inviter_id, 
+		user_id
+	);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		if (code == server_status_code::SYS__OKEY) {
+			auto results = std::unique_ptr<sql::ResultSet>(
+				comps.exec->executeQuery(queries[0])
+			);
+
+			if (!results->rowsCount()) {
+				code = server_status_code::CHAT__NONEXISTEN_CHAT_ERROR;
+			}
+		}
+
+		if (code == server_status_code::SYS__OKEY) {
+			auto results = std::unique_ptr<sql::ResultSet>(
+				comps.exec->executeQuery(queries[1])
+			);
+
+			if (!results->rowsCount()) {
+				code = server_status_code::CHAT__INVITER_NOT_A_PARTICIPANT_ERROR;
+			}
+		}
+
+		if (code == server_status_code::SYS__OKEY) {
+			auto results = std::unique_ptr<sql::ResultSet>(
+				comps.exec->executeQuery(queries[2])
+			);
+
+			if (results->rowsCount()) {
+				code = server_status_code::CHAT__USER_ALREADY_IN_CHAT;
+			}
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::add_user_to_chat(const std::string& chat_id, const std::string& user_id) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_add_user_to_chat(chat_id, user_id);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		comps.exec->executeUpdate(queries[0]);
 	}
 	catch (const std::exception& ex) {
 		LOG() << ex.what() << "\n";

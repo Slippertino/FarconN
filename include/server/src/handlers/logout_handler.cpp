@@ -5,7 +5,8 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-logout_handler::logout_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : handler(sm, ce, cr, true)
+logout_handler::logout_handler(server_middleware* sm, const command_entity* ce, command_response* cr) : 
+	handler(sm, ce, cr, true)
 { }
 
 bool logout_handler::is_command_valid() {
@@ -18,12 +19,13 @@ void logout_handler::execute() {
 
 	auto& n_token = session->native_token;
 
-	auto result = db->logout_user(n_token);
-	out->status = status_code_interpreter::interpret(result);
+	SERVER_ASSERT(out, db->logout_user(n_token) != server_status_code::SYS__OKEY)
 
 	std::lock_guard<std::mutex> locker(main->sessions_mutex);
 
 	main->sessions.erase(session->session_token);
+
+	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
 }
 
 FARCONN_NAMESPACE_END

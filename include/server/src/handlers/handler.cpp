@@ -11,19 +11,24 @@ handler::handler(server_middleware* sm, const command_entity* ce, command_respon
 	db(&sm->database)
 { }
 
-void handler::try_authenticate_user() {
+server_status_code handler::try_authenticate_user() {
 	auto& session_token = in->params[0];
 
-	SERVER_ASSERT_EX(out, main->sessions.find(session_token) == main->sessions.end(), server_status_code::SYS__INVALID_TOKEN_ERROR)
+	auto result = main->sessions.find(session_token) == main->sessions.end()
+		? server_status_code::SYS__INVALID_TOKEN_ERROR
+		: server_status_code::SYS__OKEY;
 
 	session = &main->sessions[session_token];
+
+	return result;
 }
 
 void handler::handle() {
 	SERVER_ASSERT_EX(out, !is_command_valid(), server_status_code::SYS__INVALID_COMMAND_ERROR)
 
 	if (is_auth_required) {
-		try_authenticate_user();
+		auto code = try_authenticate_user();
+		SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
 	}
 
 	execute();

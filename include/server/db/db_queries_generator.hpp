@@ -41,6 +41,8 @@ public:
 	static std::vector<std::string> get_chats_tokens_query();
 	static std::vector<std::string> get_chat_creation_query(chat_creation_params);
 	static std::vector<std::string> get_user_chats_count_query(std::string);
+	static std::vector<std::string> get_is_chat_id_valid(std::string, std::string, std::string);
+	static std::vector<std::string> get_add_user_to_chat(std::string, std::string);
 
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);

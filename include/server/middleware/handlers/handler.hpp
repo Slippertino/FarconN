@@ -18,7 +18,7 @@ public:
 	handler(class server_middleware*, const command_entity*, command_response*, bool);
 
 	virtual void handle();
-	virtual void try_authenticate_user();
+	virtual server_status_code try_authenticate_user();
 
 protected:
 	virtual bool is_command_valid() = 0;

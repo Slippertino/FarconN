@@ -31,6 +31,7 @@ class server_middleware {
 	DECLARE_HANDLER(contact_delete_handler)
 	DECLARE_HANDLER(search_handler)
 	DECLARE_HANDLER(chat_create_handler)
+	DECLARE_HANDLER(chat_add_handler)
 
 public:
 	server_middleware() = delete;
