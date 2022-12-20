@@ -21,7 +21,7 @@ void login_handler::execute() {
 
 	SERVER_ASSERT_EX(
 		out,
-		!login_format_validator::is_valid(login) || !password_format_validator::is_valid(pass),
+		!user_login_format_validator::is_valid(login) || !user_password_format_validator::is_valid(pass),
 		server_status_code::LOGIN__INVALID_DATA_ERROR
 	)
 

@@ -18,7 +18,8 @@ class db_queries_generator {
 public:
 	static std::vector<std::string> get_db_init_queries(std::string);
 	static std::vector<std::string> get_users_tokens_query();
-	static std::vector<std::string> get_users_searching_list_query(const std::string&, std::vector<std::string>);
+	static std::vector<std::string> get_user_id_by_login_query(std::string);
+	static std::vector<std::string> get_users_searching_list_query(std::string, std::vector<std::string>);
 	static std::vector<std::string> get_add_user_query(std::string, std::string, std::string);
 	static std::vector<std::string> get_login_user_queries(std::string, std::string);
 	static std::vector<std::string> get_logout_user_query(std::string);
@@ -37,6 +38,10 @@ public:
 	static std::vector<std::string> get_invites_list_query(invites_selection);
 	static std::vector<std::string> get_contacts_list_query(contacts_selection);
 
+	static std::vector<std::string> get_chats_tokens_query();
+	static std::vector<std::string> get_chat_creation_query(chat_creation_params);
+	static std::vector<std::string> get_user_chats_count_query(std::string);
+
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);
 	static void reset(std::ostringstream&, std::vector<std::string>&);
@@ -45,6 +50,9 @@ private:
 	static std::string users_name_tb;
 	static std::string contacts_name_tb;
 	static std::string requests_name_tb;
+	static std::string chats_name_tb;
+	static std::string messages_name_tb;
+	static std::string users_in_chats_name_tb;
 };
 
 FARCONN_NAMESPACE_END

@@ -4,16 +4,20 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-class login_format_validator    : public format_validator<login_format_validator>{ };
+class user_login_format_validator		: public format_validator<user_login_format_validator>{ };
 
-class password_format_validator : public format_validator<password_format_validator>{ };
+class user_password_format_validator	: public format_validator<user_password_format_validator>{ };
 
-class name_format_validator     : public format_validator<name_format_validator> { };
+class user_name_format_validator		: public format_validator<user_name_format_validator> { };
 
-class phone_format_validator    : public format_validator<phone_format_validator> { };
+class user_phone_format_validator		: public format_validator<user_phone_format_validator> { };
 
-class email_format_validator    : public format_validator<email_format_validator> { };
+class user_email_format_validator		: public format_validator<user_email_format_validator> { };
 
-class self_format_validator     : public format_validator<self_format_validator> { };
+class user_self_format_validator		: public format_validator<user_self_format_validator> { };
+
+class chat_name_format_validator        : public format_validator<chat_name_format_validator> { };
+
+class message_content_format_validator  : public format_validator<message_content_format_validator> { };
 
 FARCONN_NAMESPACE_END

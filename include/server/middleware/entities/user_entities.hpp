@@ -9,6 +9,13 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
+enum class users_relations_type {
+	NONE,
+	CONTACTS,
+	REQUESTS,
+	SELF
+};
+
 struct field_description {
 	std::string name;
 	std::optional<std::string> value;

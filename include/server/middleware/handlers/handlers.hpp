@@ -11,3 +11,4 @@
 #include "contacts_list_handler.hpp"
 #include "contact_delete_handler.hpp"
 #include "search_handler.hpp"
+#include "chat_create_handler.hpp"

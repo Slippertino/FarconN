@@ -2,9 +2,12 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-std::string db_queries_generator::users_name_tb    = "users";
-std::string db_queries_generator::contacts_name_tb = "contacts";
-std::string db_queries_generator::requests_name_tb = "requests";
+std::string db_queries_generator::users_name_tb			 = "users";
+std::string db_queries_generator::contacts_name_tb		 = "contacts";
+std::string db_queries_generator::requests_name_tb       = "requests";
+std::string db_queries_generator::chats_name_tb          = "chats";
+std::string db_queries_generator::messages_name_tb       = "messages";
+std::string db_queries_generator::users_in_chats_name_tb = "users_in_chats";
 
 void db_queries_generator::to_mysql_format(const std::initializer_list<std::string*>& args) {
 	static const std::string special_symbols = "\"\'\\";
@@ -72,6 +75,35 @@ std::vector<std::string> db_queries_generator::get_db_init_queries(std::string d
 		<< "foreign key (u_to) references " << users_name_tb << "(login) on delete cascade on update cascade);";
 	reset(ostr, res);
 
+	ostr << "create table "
+		<< "if not exists " << chats_name_tb << " ("
+		<< "id varchar(50) primary key,"
+		<< "type enum(" << Q("private") << "," << Q("public") << ") not null,"
+		<< "title varchar(32) null,"
+		<< "size int not null);";
+	reset(ostr, res);
+
+	ostr << "create table "
+		<< "if not exists " << messages_name_tb << " ("
+		<< "chat_id varchar(50),"
+		<< "sender_id varchar(50),"
+		<< "time datetime,"
+		<< "type enum(" << Q("text") << "," << Q("file") << ") not null,"
+		<< "content text not null,"
+		<< "primary key(chat_id, sender_id, time),"
+		<< "foreign key (chat_id) references " << chats_name_tb << "(id) on delete cascade on update no action,"
+		<< "foreign key (sender_id) references " << users_name_tb << "(id) on delete cascade on update no action);";
+	reset(ostr, res);
+
+	ostr << "create table "
+		<< "if not exists " << users_in_chats_name_tb << " ("
+		<< "user_id varchar(50),"
+		<< "chat_id varchar(50),"
+		<< "primary key(user_id, chat_id),"
+		<< "foreign key (user_id) references " << users_name_tb << "(id) on delete cascade on update no action,"
+		<< "foreign key (chat_id) references " << chats_name_tb << "(id) on delete cascade on update no action);";
+	reset(ostr, res);
+
 	return res;
 }
 
@@ -85,10 +117,25 @@ std::vector<std::string> db_queries_generator::get_users_tokens_query() {
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_users_searching_list_query(const std::string& login, std::vector<std::string> columns) {
+std::vector<std::string> db_queries_generator::get_user_id_by_login_query(std::string login) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
+	to_mysql_format({ &login });
+
+	ostr << "select id "
+		<< "from " << users_name_tb << " "
+		<< "where login = " << Q(login) << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_users_searching_list_query(std::string login, std::vector<std::string> columns) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &login });
 	for (auto& col : columns) {
 		to_mysql_format({ &col });
 	}
@@ -345,4 +392,70 @@ std::vector<std::string> db_queries_generator::get_contacts_list_query(contacts_
 	return res;
 }
 
+std::vector<std::string> db_queries_generator::get_chats_tokens_query() {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	ostr << "select id from " << chats_name_tb << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_chat_creation_query(chat_creation_params params) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({
+		&params.id,
+		&params.type,
+		&params.title
+	});
+
+	for (auto& id : params.default_users_ids) {
+		to_mysql_format({ &id });
+	}
+
+	ostr << "insert into " << chats_name_tb << "(id, type, size, title) values("
+		<< Q(params.id) << "," << Q(params.type) << "," << params.size << ",";
+
+	if (params.title.empty()) {
+		ostr << "null";
+	}
+	else {
+		ostr << Q(params.title);
+	}
+
+	ostr << ");";
+
+	reset(ostr, res);
+
+	ostr << "insert into " << users_in_chats_name_tb << "(user_id, chat_id) values";
+
+	for (auto i = 0; i < params.default_users_ids.size(); ++i) {
+		if (i) {
+			ostr << ",";
+		}
+
+		ostr << "(" << Q(params.default_users_ids[i]) << "," << Q(params.id) << ")";
+	}
+	
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_user_chats_count_query(std::string id) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &id });
+
+	ostr << "select count(*) as count "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "where user_id = " << Q(id) << ";";
+	reset(ostr, res);
+
+	return res;
+}
 FARCONN_NAMESPACE_END

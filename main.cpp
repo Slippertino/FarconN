@@ -9,7 +9,7 @@
 #include <cpp_events/event.hpp>
 #include <regex>
 #include "include/general/protocol/protocol_interpreter.hpp"
-#include "include/server/middleware/entities/user_profile.hpp"
+#include "include/server/middleware/entities/entities.hpp"
 #include "include/server/tools/query_ranking_estimator.hpp"
 
 using namespace farconn::general;
@@ -19,6 +19,9 @@ int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
+	std::string q = "chat_create -public \"24-24-asfs-324\" \"Мой чат\"";
+
+	auto res = protocol_interpreter::interpret(q);
 	std::cout << query_ranking_estimator::estimate_query_ranking("slaip", "slippert") << std::endl;
 	/*farconn::server::user_profile p;
 

@@ -19,8 +19,8 @@ void signup_handler::execute() {
 	auto& login = params[0];
 	auto& pass = params[1];
 
-	SERVER_ASSERT_EX(out, !login_format_validator::is_valid(login), server_status_code::SIGNUP__INVALID_LOGIN_ERROR)
-	SERVER_ASSERT_EX(out, !password_format_validator::is_valid(pass), server_status_code::SIGNUP__INVALID_PASSWORD_ERROR)
+	SERVER_ASSERT_EX(out, !user_login_format_validator::is_valid(login), server_status_code::SIGNUP__INVALID_LOGIN_ERROR)
+	SERVER_ASSERT_EX(out, !user_password_format_validator::is_valid(pass), server_status_code::SIGNUP__INVALID_PASSWORD_ERROR)
 
 	std::lock_guard<std::mutex> locker(main->users_locker);
 

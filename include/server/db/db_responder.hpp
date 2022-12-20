@@ -30,6 +30,7 @@ public:
 	server_status_code login_user(const std::string&, const std::string&, std::string&);
 	server_status_code logout_user(const std::string&);
 
+	server_status_code get_user_id_by_login(const std::string&, std::string&);
 	server_status_code get_users_relations(const std::string&, const std::string&, users_relations_type&);
 	server_status_code get_user_profile_data(const std::string&, user_profile&);
 
@@ -48,6 +49,11 @@ public:
 	server_status_code get_contacts_list(const contacts_selection&, contacts_info&);
 
 	server_status_code get_users_searching_list(const std::string&, std::list<primitive_user_info>&);
+	
+	server_status_code get_chats_tokens(std::unordered_set<std::string>&);
+	server_status_code create_chat(const chat_creation_params&);
+
+	server_status_code get_user_chats_count(const std::string&, uint32_t&);
 
 	~db_responder();
 

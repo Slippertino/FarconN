@@ -1,7 +1,6 @@
 #pragma once
 
 #include <optional>
-#include "../entities/user_profile.hpp"
 #include "handler.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
@@ -21,12 +20,12 @@ protected:
 	static const std::map<size_t, std::string> profile_fields_order;
 
 	user_profile profile_fields = {
-		{ "pl",  { "login",    std::nullopt, &login_format_validator::is_valid    } },
-		{ "pp",  { "password", std::nullopt, &password_format_validator::is_valid } },
-		{ "pn",  { "name",     std::nullopt, &name_format_validator::is_valid     } },
-		{ "pph", { "phone",    std::nullopt, &phone_format_validator::is_valid    } },
-		{ "pe",  { "email",    std::nullopt, &email_format_validator::is_valid    } },
-		{ "ps",  { "self",     std::nullopt, &self_format_validator::is_valid     } },
+		{ "pl",  { "login",    std::nullopt, &user_login_format_validator::is_valid    } },
+		{ "pp",  { "password", std::nullopt, &user_password_format_validator::is_valid } },
+		{ "pn",  { "name",     std::nullopt, &user_name_format_validator::is_valid     } },
+		{ "pph", { "phone",    std::nullopt, &user_phone_format_validator::is_valid    } },
+		{ "pe",  { "email",    std::nullopt, &user_email_format_validator::is_valid    } },
+		{ "ps",  { "self",     std::nullopt, &user_self_format_validator::is_valid     } },
 	};
 };
 

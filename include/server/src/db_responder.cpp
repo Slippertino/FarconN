@@ -176,6 +176,35 @@ server_status_code db_responder::logout_user(const std::string& token) {
 	return code;
 }
 
+server_status_code db_responder::get_user_id_by_login(const std::string& login, std::string& token) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_user_id_by_login_query(login);
+
+	server_status_code code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		if (!results->rowsCount()) {
+			code = server_status_code::SYS__NONEXISTEN_USER_ERROR;
+		} else {
+			results->beforeFirst();
+			results->next();
+			token = results->getString("id");
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
 server_status_code db_responder::get_users_relations(const std::string& login_user1, const std::string& login_user2, users_relations_type& rels) {
 	if (login_user1 == login_user2) {
 		rels = users_relations_type::SELF;
@@ -525,6 +554,85 @@ server_status_code db_responder::get_users_searching_list(const std::string& log
 	}
 	catch (const std::exception& ex) {
 		LOG() << "Database : " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::create_chat(const chat_creation_params& params) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_chat_creation_query(params);
+
+	server_status_code code;
+	
+	try {
+		comps.exec->executeUpdate(queries[0]);
+		comps.exec->executeUpdate(queries[1]);
+
+		code = server_status_code::SYS__OKEY;
+
+		LOG() << "Database: " << "Добавлен новый чат!\n";
+	}
+	catch (const std::exception& ex) {
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+
+		LOG() << ex.what() << "\n";
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_chats_tokens(std::unordered_set<std::string>& tokens) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_chats_tokens_query();
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		results->beforeFirst();
+		results->next();
+		while (!results->isAfterLast()) {
+			auto id = results->getString("id");
+			tokens.insert(id);
+			results->next();
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_user_chats_count(const std::string& id, uint32_t& count) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_user_chats_count_query(id);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		results->beforeFirst();
+		results->next();
+		count = results->getUInt("count");
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
