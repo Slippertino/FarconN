@@ -28,7 +28,7 @@ void profile_set_handler::execute() {
 	auto& options = in->options;
 	auto& params = in->params;
 
-	SERVER_ASSERT_EX(out, options.empty(), server_status_code::SYS__OKEY)
+	SERVER_ASSERT_EX(out, options.empty(), SUCCESS)
 
 	for (auto& opt : options) {
 		SERVER_ASSERT_EX(out, !profile_fields[opt.second].validator(params[opt.first + 1]), server_status_code::PROFILE__INVALID_DATA_TO_SET_ERROR)
@@ -36,14 +36,15 @@ void profile_set_handler::execute() {
 		profile_fields[opt.second].value = in->params[opt.first + 1];
 	}
 
-	out->status = status_code_interpreter::interpret(
-		db->update_user_profile(session->native_token, profile_fields)
-	);
+	auto code = db->update_user_profile(session->native_token, profile_fields);
+	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 	auto& login = profile_fields["pl"].value;
 	if (login != std::nullopt) {
 		session->login = login.value();
 	}
+
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 FARCONN_NAMESPACE_END

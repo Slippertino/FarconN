@@ -24,7 +24,7 @@ void chat_create_handler::execute() {
 	params.type = in->options[0];
 
 	std::unordered_set<std::string> chat_tokens;
-	SERVER_ASSERT(out, db->get_chats_tokens(chat_tokens) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_chats_tokens(chat_tokens) != SUCCESS)
 
 	params.id = token_generator::generate([&chat_tokens](const std::string& cur) {
 		return chat_tokens.find(cur) == chat_tokens.end();
@@ -33,12 +33,16 @@ void chat_create_handler::execute() {
 	auto& id = session->native_token;
 
 	uint32_t chats_count;
-	SERVER_ASSERT(out, db->get_user_chats_count(id, chats_count) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_user_chats_count(id, chats_count) != SUCCESS)
 	SERVER_ASSERT_EX(out, chats_count == max_chats_count_to_join, server_status_code::CHAT__JOINED_CHATS_LIMIT_EXCEEDED_ERROR)
 
 	params.default_users_ids.push_back(id);
 
 	options_handlers.at(params.type)(this, params);
+
+	if (out->status.first == static_cast<uint16_t>(SUCCESS)) {
+		out->params.push_back(params.id);
+	}
 }
 
 void chat_create_handler::handle_private(chat_creation_params& params) {
@@ -49,12 +53,12 @@ void chat_create_handler::handle_private(chat_creation_params& params) {
 	users_relations_type rels;
 	std::string user_id;
 
-	SERVER_ASSERT(out, db->get_users_relations(session->login, user_login, rels) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_users_relations(session->login, user_login, rels) != SUCCESS)
 	SERVER_ASSERT_EX(out, rels != users_relations_type::CONTACTS, server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR)
-	SERVER_ASSERT(out, db->get_user_id_by_login(user_login, user_id) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_user_id_by_login(user_login, user_id) != SUCCESS)
 
 	uint32_t chats_count;
-	SERVER_ASSERT(out, db->get_user_chats_count(user_id, chats_count) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_user_chats_count(user_id, chats_count) != SUCCESS)
 	SERVER_ASSERT_EX(out, chats_count == max_chats_count_to_join, server_status_code::CHAT__JOINED_CHATS_LIMIT_EXCEEDED_ERROR)
 
 	params.default_users_ids.push_back(user_id);

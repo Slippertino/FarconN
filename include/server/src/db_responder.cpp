@@ -641,49 +641,53 @@ server_status_code db_responder::get_user_chats_count(const std::string& id, uin
 	return code;
 }
 
-server_status_code db_responder::is_chat_id_valid(
-	const std::string& chat_id, 
-	const std::string& inviter_id, 
-	const std::string& user_id
-) {
+server_status_code db_responder::add_user_to_chat(const std::string& chat_id, const std::string& user_id) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_is_chat_id_valid(
-		chat_id, 
-		inviter_id, 
-		user_id
-	);
+	auto queries = db_queries_generator::get_add_user_to_chat_queries(chat_id, user_id);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	comps.connection->setAutoCommit(false);
+
+	try {
+		for (auto& query : queries) {
+			comps.exec->executeUpdate(query);
+		}
+
+		comps.connection->commit();
+	}
+	catch (const std::exception& ex) {
+		comps.connection->rollback();
+
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	comps.connection->setAutoCommit(true);
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_chat_type(const std::string& chat_id, std::string& type) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_chat_type_query(chat_id);
 
 	auto code = server_status_code::SYS__OKEY;
 
 	try {
-		if (code == server_status_code::SYS__OKEY) {
-			auto results = std::unique_ptr<sql::ResultSet>(
-				comps.exec->executeQuery(queries[0])
-			);
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
 
-			if (!results->rowsCount()) {
-				code = server_status_code::CHAT__NONEXISTEN_CHAT_ERROR;
-			}
+		if (results->rowsCount()) {
+			results->beforeFirst();
+			results->next();
+			type = results->getString("type");
 		}
-
-		if (code == server_status_code::SYS__OKEY) {
-			auto results = std::unique_ptr<sql::ResultSet>(
-				comps.exec->executeQuery(queries[1])
-			);
-
-			if (!results->rowsCount()) {
-				code = server_status_code::CHAT__INVITER_NOT_A_PARTICIPANT_ERROR;
-			}
-		}
-
-		if (code == server_status_code::SYS__OKEY) {
-			auto results = std::unique_ptr<sql::ResultSet>(
-				comps.exec->executeQuery(queries[2])
-			);
-
-			if (results->rowsCount()) {
-				code = server_status_code::CHAT__USER_ALREADY_IN_CHAT;
-			}
+		else {
+			code = server_status_code::CHAT__NONEXISTEN_CHAT_ERROR;
 		}
 	}
 	catch (const std::exception& ex) {
@@ -696,19 +700,61 @@ server_status_code db_responder::is_chat_id_valid(
 	return code;
 }
 
-server_status_code db_responder::add_user_to_chat(const std::string& chat_id, const std::string& user_id) {
+server_status_code db_responder::is_user_chat_participant(const std::string& user_id, const std::string& chat_id) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_add_user_to_chat(chat_id, user_id);
+	auto queries = db_queries_generator::get_is_user_chat_participant_query(user_id, chat_id);
 
 	auto code = server_status_code::SYS__OKEY;
 
 	try {
-		comps.exec->executeUpdate(queries[0]);
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		if (!results->rowsCount()) {
+			code = server_status_code::CHAT__USER_NOT_A_PARTICIPANT_ERROR;
+		}
 	}
 	catch (const std::exception& ex) {
 		LOG() << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::exclude_user_from_chat(const std::string& user_id, const std::string& chat_id) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_exclude_user_from_chat_queries(user_id, chat_id);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	comps.connection->setAutoCommit(false);
+
+	try {
+		auto affected = comps.exec->executeUpdate(queries[0]);
+
+		if (!affected) {
+			code = server_status_code::CHAT__USER_NOT_A_PARTICIPANT_ERROR;
+		}
+
+		if (code == server_status_code::SYS__OKEY) {
+			comps.exec->executeUpdate(queries[1]);
+			comps.exec->executeUpdate(queries[2]);
+		}
+
+		comps.connection->commit();
+	}
+	catch (const std::exception& ex) {
+		comps.connection->rollback();
+
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	comps.connection->setAutoCommit(true);
 
 	free_query_components(comps);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../../middleware/handlers/selection_handler.hpp"
+#include "../../middleware/server_middleware.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 
@@ -22,7 +23,7 @@ server_status_code selection_handler::try_convert_to_selection_setting(const std
 			st = std::stoi(stStr);
 		}
 
-		return server_status_code::SYS__OKEY;
+		return SUCCESS;
 	}
 	catch (...) {
 		return server_status_code::SYS__INTERNAL_SERVER_ERROR;

@@ -21,7 +21,7 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 	auto& searching = session->searching;
 
 	if (searching.query == query) {
-		return server_status_code::SYS__OKEY;
+		return SUCCESS;
 	}
 
 	searching.query = query;
@@ -30,7 +30,7 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 	std::list<primitive_user_info> info;
 	auto code = db->get_users_searching_list(session->login, info);
 
-	if (code != server_status_code::SYS__OKEY) {
+	if (code != SUCCESS) {
 		return code;
 	}
 
@@ -58,7 +58,7 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 		searching.results.insert({ i, *it });
 	}
 
-	return server_status_code::SYS__OKEY;
+	return SUCCESS;
 }
 
 void search_handler::execute() {
@@ -70,19 +70,19 @@ void search_handler::execute() {
 
 	SERVER_ASSERT_EX(
 		out,
-		try_convert_to_offset(params[2], &selection) != server_status_code::SYS__OKEY,
+		try_convert_to_offset(params[2], &selection) != SUCCESS,
 		server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR
 	)
 
 	SERVER_ASSERT_EX(
 		out,
-		try_convert_to_limit(params[3], &selection) != server_status_code::SYS__OKEY,
+		try_convert_to_limit(params[3], &selection) != SUCCESS,
 		server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR
 	)
 
 	auto update_status = update_searching_cache(selection.query);
 
-	SERVER_ASSERT_EX(out, update_status != server_status_code::SYS__OKEY, update_status)
+	SERVER_ASSERT_EX(out, update_status != SUCCESS, update_status)
 
 	auto& searching = session->searching;
 
@@ -96,7 +96,7 @@ void search_handler::execute() {
 	nlohmann::to_json(js, info);
 	out->params.push_back(js.dump());
 
-	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 FARCONN_NAMESPACE_END

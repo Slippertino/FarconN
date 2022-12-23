@@ -23,13 +23,13 @@ void contacts_list_handler::execute() {
 
 	SERVER_ASSERT_EX(
 		out, 
-		try_convert_to_offset(params[1], &selection) != server_status_code::SYS__OKEY, 
+		try_convert_to_offset(params[1], &selection) != SUCCESS, 
 		server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR
 	)
 
 	SERVER_ASSERT_EX(
 		out, 
-		try_convert_to_limit(params[2], &selection) != server_status_code::SYS__OKEY, 
+		try_convert_to_limit(params[2], &selection) != SUCCESS, 
 		server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR
 	)
 
@@ -38,13 +38,13 @@ void contacts_list_handler::execute() {
 		info
 	);
 
-	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
+	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 	nlohmann::json js;
 	nlohmann::to_json(js, info);
 	out->params.push_back(js.dump());
 
-	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 FARCONN_NAMESPACE_END

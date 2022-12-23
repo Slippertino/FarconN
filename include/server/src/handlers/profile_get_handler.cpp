@@ -23,11 +23,11 @@ void profile_get_handler::execute() {
 
 	code = db->get_users_relations(session->login, user_login, rels);
 
-	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
+	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 	code = db->get_user_profile_data(user_login, profile_fields);
 
-	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
+	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 	apply_filter(rels);
 
@@ -39,7 +39,7 @@ void profile_get_handler::execute() {
 		}
 	}
 
-	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 FARCONN_NAMESPACE_END

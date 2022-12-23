@@ -13,3 +13,4 @@
 #include "search_handler.hpp"
 #include "chat_create_handler.hpp"
 #include "chat_add_handler.hpp"
+#include "chat_leave_handler.hpp"

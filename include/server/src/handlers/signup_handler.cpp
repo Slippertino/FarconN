@@ -24,9 +24,7 @@ void signup_handler::execute() {
 
 	std::lock_guard<std::mutex> locker(main->users_locker);
 
-	out->status = status_code_interpreter::interpret(
-		db->signup_user(login, pass)
-	);
+	SERVER_ASSERT_EX(out, true, db->signup_user(login, pass))
 }
 
 FARCONN_NAMESPACE_END

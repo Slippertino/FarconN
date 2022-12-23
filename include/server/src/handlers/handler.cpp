@@ -16,7 +16,7 @@ server_status_code handler::try_authenticate_user() {
 
 	auto result = main->sessions.find(session_token) == main->sessions.end()
 		? server_status_code::SYS__INVALID_TOKEN_ERROR
-		: server_status_code::SYS__OKEY;
+		: SUCCESS;
 
 	session = &main->sessions[session_token];
 
@@ -28,7 +28,7 @@ void handler::handle() {
 
 	if (is_auth_required) {
 		auto code = try_authenticate_user();
-		SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
+		SERVER_ASSERT_EX(out, code != SUCCESS, code)
 	}
 
 	execute();

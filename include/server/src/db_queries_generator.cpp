@@ -459,21 +459,25 @@ std::vector<std::string> db_queries_generator::get_user_chats_count_query(std::s
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_is_chat_id_valid(std::string chat_id, std::string inviter_id, std::string user_id) {
+std::vector<std::string> db_queries_generator::get_chat_type_query(std::string chat_id) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &chat_id, &inviter_id });
+	to_mysql_format({ &chat_id });
 
-	ostr << "select id "
+	ostr << "select type "
 		<< "from " << chats_name_tb << " "
-		<< "where type = " << Q("public") << " and " << "id = " << Q(chat_id) << ";";
+		<< "where id = " << Q(chat_id) << ";";
 	reset(ostr, res);
 
-	ostr << "select user_id "
-		<< "from " << users_in_chats_name_tb << " "
-		<< "where (chat_id = " << Q(chat_id) << " and " << "user_id = " << Q(inviter_id) << ");";
-	reset(ostr, res);
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_is_user_chat_participant_query(std::string user_id, std::string chat_id) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &chat_id });
 
 	ostr << "select user_id "
 		<< "from " << users_in_chats_name_tb << " "
@@ -483,7 +487,7 @@ std::vector<std::string> db_queries_generator::get_is_chat_id_valid(std::string 
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_add_user_to_chat(std::string chat_id, std::string user_id) {
+std::vector<std::string> db_queries_generator::get_add_user_to_chat_queries(std::string chat_id, std::string user_id) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
@@ -491,6 +495,35 @@ std::vector<std::string> db_queries_generator::get_add_user_to_chat(std::string 
 
 	ostr << "insert into " << users_in_chats_name_tb << "(user_id, chat_id) values "
 		<< "(" << Q(user_id) << "," << Q(chat_id) << ");";
+	reset(ostr, res);
+
+	ostr << "update " << chats_name_tb << " "
+		<< "set size = size + 1 "
+		<< "where id = " << Q(chat_id);
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_exclude_user_from_chat_queries(std::string user_id, std::string chat_id) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &chat_id, &user_id });
+
+	ostr << "delete from " << users_in_chats_name_tb << " "
+		<< "where user_id = " << Q(user_id) << " and " << "chat_id = " << Q(chat_id) << ";";
+	reset(ostr, res);
+
+	ostr << "update " << chats_name_tb << " "
+		<< "set size = size - 1 "
+		<< "where id = " << Q(chat_id);
+	reset(ostr, res);
+
+	ostr << "delete from " << chats_name_tb << " "
+		<< "where id = " << Q(chat_id) << " and ("
+		<< "type = " << Q("public") << " and " << "size = 0" << " or "
+		<< "type = " << Q("private") << " and " << "size = 1)";
 	reset(ostr, res);
 
 	return res;

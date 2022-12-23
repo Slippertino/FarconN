@@ -27,16 +27,16 @@ void invite_handler::execute() {
 
 void invite_handler::handle_accept(const std::string& lufrom, const std::string& luto) {
 	bool is_request_exist = false;
-	SERVER_ASSERT(out, db->check_request_existence(lufrom, luto, is_request_exist) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->check_request_existence(lufrom, luto, is_request_exist) != SUCCESS)
 	SERVER_ASSERT_EX(out, !is_request_exist, server_status_code::REQUEST__NONEXISTEN_REQUEST_ERROR);
 
-	SERVER_ASSERT(out, db->delete_request(lufrom, luto) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->delete_request(lufrom, luto) != SUCCESS)
 	SERVER_ASSERT_EX(out, true, db->create_contact(lufrom, luto))
 }
 
 void invite_handler::handle_reject(const std::string& lufrom, const std::string& luto) {
 	bool is_request_exist = false;
-	SERVER_ASSERT(out, db->check_request_existence(lufrom, luto, is_request_exist) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->check_request_existence(lufrom, luto, is_request_exist) != SUCCESS)
 	SERVER_ASSERT_EX(out, !is_request_exist, server_status_code::REQUEST__NONEXISTEN_REQUEST_ERROR)
 
 	SERVER_ASSERT_EX(out, true, db->delete_request(lufrom, luto))
@@ -44,7 +44,7 @@ void invite_handler::handle_reject(const std::string& lufrom, const std::string&
 
 void invite_handler::handle_create(const std::string& luto, const std::string& lufrom) {
 	users_relations_type rels;
-	SERVER_ASSERT(out, db->get_users_relations(lufrom, luto, rels) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_users_relations(lufrom, luto, rels) != SUCCESS)
 	SERVER_ASSERT_EX(out, rels != users_relations_type::NONE, server_status_code::REQUEST__ALREADY_IN_CONTACTS_ERROR)
 
 	SERVER_ASSERT_EX(out, true, db->create_request(lufrom, luto))

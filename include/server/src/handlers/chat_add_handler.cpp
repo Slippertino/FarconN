@@ -17,15 +17,26 @@ void chat_add_handler::execute() {
 	auto& chat_id = in->params[1];
 	auto& user_login = in->params[2];
 
+	auto is_part = db->is_user_chat_participant(session->native_token, chat_id);
+	SERVER_ASSERT_EX(out, is_part != SUCCESS, is_part)
+
+	std::string chat_type_name;
+	SERVER_ASSERT(out, db->get_chat_type(chat_id, chat_type_name) != SUCCESS)
+	SERVER_ASSERT_EX(
+		out,
+		chat_name_type_mapper.at(chat_type_name) == chat_type::PRIVATE,
+		server_status_code::CHAT__IMPOSSIBLE_ADD_TO_PRIVATE_CHAT_ERROR
+	)
+
 	users_relations_type rels;
-	std::string user_id;
-
-	SERVER_ASSERT(out, db->get_users_relations(session->login, user_login, rels) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->get_users_relations(session->login, user_login, rels) != SUCCESS)
 	SERVER_ASSERT_EX(out, rels != users_relations_type::CONTACTS, server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR)
-	SERVER_ASSERT(out, db->get_user_id_by_login(user_login, user_id) != server_status_code::SYS__OKEY)
 
-	auto code = db->is_chat_id_valid(chat_id, session->native_token, user_id);
-	SERVER_ASSERT_EX(out, code != server_status_code::SYS__OKEY, code)
+	std::string user_id;
+	SERVER_ASSERT(out, db->get_user_id_by_login(user_login, user_id) != SUCCESS)
+
+	is_part = db->is_user_chat_participant(user_id, chat_id);
+	SERVER_ASSERT_EX(out, is_part == SUCCESS, server_status_code::CHAT__USER_ALREADY_IN_CHAT)
 
 	SERVER_ASSERT_EX(out, true, db->add_user_to_chat(chat_id, user_id))
 }

@@ -19,10 +19,10 @@ void contact_delete_handler::execute() {
 	auto& login = session->login;
 	auto& contact_login = in->params[1];
 
-	SERVER_ASSERT(out, db->check_contact_existence(login, contact_login, is_contact_exist) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->check_contact_existence(login, contact_login, is_contact_exist) != SUCCESS)
 	SERVER_ASSERT_EX(out, !is_contact_exist, server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR)
-	SERVER_ASSERT(out, db->delete_contact(login, contact_login) != server_status_code::SYS__OKEY)
-	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->delete_contact(login, contact_login) != SUCCESS)
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 FARCONN_NAMESPACE_END

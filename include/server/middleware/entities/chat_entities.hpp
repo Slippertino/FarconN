@@ -1,5 +1,10 @@
 #pragma once
 
+#include <string>
+#include <vector>
+
+FARCONN_NAMESPACE_BEGIN(server)
+
 enum class chat_message_type {
 	TEXT = 1,
 	FILE = 2
@@ -17,3 +22,5 @@ struct chat_creation_params {
 	size_t size;
 	std::vector<std::string> default_users_ids;
 };
+
+FARCONN_NAMESPACE_END

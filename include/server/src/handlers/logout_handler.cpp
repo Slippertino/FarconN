@@ -19,13 +19,13 @@ void logout_handler::execute() {
 
 	auto& n_token = session->native_token;
 
-	SERVER_ASSERT(out, db->logout_user(n_token) != server_status_code::SYS__OKEY)
+	SERVER_ASSERT(out, db->logout_user(n_token) != SUCCESS)
 
 	std::lock_guard<std::mutex> locker(main->sessions_mutex);
 
 	main->sessions.erase(session->session_token);
 
-	SERVER_ASSERT_EX(out, true, server_status_code::SYS__OKEY)
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 FARCONN_NAMESPACE_END
