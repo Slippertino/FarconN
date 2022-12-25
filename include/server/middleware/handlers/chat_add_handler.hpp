@@ -11,6 +11,9 @@ public:
 protected:
 	bool is_command_valid() override final;
 	void execute() override final;
+
+private:
+	static const uint32_t max_chat_participants_count;
 };
 
 FARCONN_NAMESPACE_END

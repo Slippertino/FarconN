@@ -20,12 +20,17 @@ void chat_add_handler::execute() {
 	auto is_part = db->is_user_chat_participant(session->native_token, chat_id);
 	SERVER_ASSERT_EX(out, is_part != SUCCESS, is_part)
 
-	std::string chat_type_name;
-	SERVER_ASSERT(out, db->get_chat_type(chat_id, chat_type_name) != SUCCESS)
+	chat_info info;
+	SERVER_ASSERT(out, db->get_chat_info(session->native_token, chat_id, info) != SUCCESS)
 	SERVER_ASSERT_EX(
 		out,
-		chat_name_type_mapper.at(chat_type_name) == chat_type::PRIVATE,
+		chat_name_type_mapper.at(info.type) == chat_type::PRIVATE,
 		server_status_code::CHAT__IMPOSSIBLE_ADD_TO_PRIVATE_CHAT_ERROR
+	)
+	SERVER_ASSERT_EX(
+		out, 
+		info.size >= max_chat_participants_count, 
+		server_status_code::CHAT__CHAT_PARTICIPANTS_LIMIT_EXCEEDED_ERROR
 	)
 
 	users_relations_type rels;
@@ -40,5 +45,7 @@ void chat_add_handler::execute() {
 
 	SERVER_ASSERT_EX(out, true, db->add_user_to_chat(chat_id, user_id))
 }
+
+const uint32_t chat_add_handler::max_chat_participants_count = 65536;
 
 FARCONN_NAMESPACE_END

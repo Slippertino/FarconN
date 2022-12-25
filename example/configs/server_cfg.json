@@ -1,7 +1,7 @@
 {
 	"ipv4": "127.0.0.1",
 	"port": 5000,
-	"files_storage_path": ".",
+	"files_storage_path": "D:/farconn_files_storage",
 	"db_config": {
 		"url": "tcp://127.0.0.1",
 		"user_name": "root",

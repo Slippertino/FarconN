@@ -3,6 +3,7 @@
 #include <mutex>
 #include <queue>
 #include <unordered_set>
+#include <fstream>
 #include <filesystem>
 #include <mysql/jdbc.h>
 #include "../tools/token_generator.hpp"
@@ -13,6 +14,8 @@
 #include "db_queries_generator.hpp"
 #include "../../general/protocol/entities/entities.hpp"
 #include "../middleware/entities/entities.hpp"
+
+namespace fs = std::filesystem;
 
 using namespace farconn::general;
 
@@ -57,9 +60,13 @@ public:
 
 	server_status_code add_user_to_chat(const std::string&, const std::string&);
 
-	server_status_code get_chat_type(const std::string&, std::string&);
+	server_status_code get_chat_info(const std::string&, const std::string&, chat_info&);
 	server_status_code is_user_chat_participant(const std::string&, const std::string&);
 	server_status_code exclude_user_from_chat(const std::string&, const std::string&);
+
+	server_status_code get_messages_tokens(std::unordered_set<std::string>&);
+	server_status_code post_message(const chat_post_params&);
+	server_status_code save_file(const std::string&, const std::string&, const std::string&);
 
 	~db_responder();
 

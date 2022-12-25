@@ -85,12 +85,12 @@ std::vector<std::string> db_queries_generator::get_db_init_queries(std::string d
 
 	ostr << "create table "
 		<< "if not exists " << messages_name_tb << " ("
-		<< "chat_id varchar(50),"
-		<< "sender_id varchar(50),"
-		<< "time datetime,"
+		<< "id varchar(50) primary key,"
+		<< "chat_id varchar(50) not null,"
+		<< "sender_id varchar(50) not null,"
+		<< "time datetime not null,"
 		<< "type enum(" << Q("text") << "," << Q("file") << ") not null,"
 		<< "content text not null,"
-		<< "primary key(chat_id, sender_id, time),"
 		<< "foreign key (chat_id) references " << chats_name_tb << "(id) on delete cascade on update no action,"
 		<< "foreign key (sender_id) references " << users_name_tb << "(id) on delete cascade on update no action);";
 	reset(ostr, res);
@@ -459,16 +459,34 @@ std::vector<std::string> db_queries_generator::get_user_chats_count_query(std::s
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_chat_type_query(std::string chat_id) {
+std::vector<std::string> db_queries_generator::get_chat_info_queries(std::string user_id, std::string chat_id) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &chat_id });
+	to_mysql_format({ &user_id, &chat_id });
 
-	ostr << "select type "
+	ostr 
+		<< "select "
+		<< users_name_tb << ".name,"
+		<< chats_name_tb << ".type,"
+		<< chats_name_tb << ".title,"
+		<< chats_name_tb << ".size "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "inner join " << chats_name_tb << " on " << chats_name_tb << ".id = " << users_in_chats_name_tb << ".chat_id "
+		<< "inner join " << users_name_tb << " on " << users_name_tb << ".id = " << users_in_chats_name_tb << ".user_id "
+		<< "and " << chats_name_tb << ".type = " << Q("private") << " "
+		<< "where chat_id = " << Q(chat_id) << " and " << "user_id <> " << Q(user_id) << ";";
+	reset(ostr, res);
+
+	/*ostr << "select type, title, size "
 		<< "from " << chats_name_tb << " "
 		<< "where id = " << Q(chat_id) << ";";
 	reset(ostr, res);
+
+	ostr << "select name from " << users_in_chats_name_tb << " "
+		<< "inner join " << users_name_tb << " on " << users_name_tb << ".id = " << users_in_chats_name_tb << ".user_id "
+		<< "where chat_id = " << Q(chat_id) << " and " << "user_id <> " << Q(user_id) << ";";
+	reset(ostr, res);*/
 
 	return res;
 }
@@ -524,6 +542,41 @@ std::vector<std::string> db_queries_generator::get_exclude_user_from_chat_querie
 		<< "where id = " << Q(chat_id) << " and ("
 		<< "type = " << Q("public") << " and " << "size = 0" << " or "
 		<< "type = " << Q("private") << " and " << "size = 1)";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_post_message_query(chat_post_params params) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ 
+		&params.id,
+		&params.sender_id,
+		&params.chat_id,
+		&params.type,
+		&params.content
+	});
+
+	ostr
+		<< "insert into messages values("
+		<< Q(params.id) << ","
+		<< Q(params.chat_id) << ","
+		<< Q(params.sender_id) << ","
+		<< "sysdate(3)" << ","
+		<< Q(params.type) << ","
+		<< Q(params.content) << ");";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_messages_tokens_query() {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	ostr << "select id from " << messages_name_tb << ";";
 	reset(ostr, res);
 
 	return res;

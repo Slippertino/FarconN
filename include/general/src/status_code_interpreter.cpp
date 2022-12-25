@@ -34,8 +34,11 @@ const std::unordered_map<server_status_code, std::string> status_code_interprete
 	{ server_status_code::CHAT__NONEXISTEN_CHAT_ERROR,					"Несуществующий чат!"													},
 	{ server_status_code::CHAT__USER_NOT_A_PARTICIPANT_ERROR,			"Вы не являетесь участником чата!"										},
 	{ server_status_code::CHAT__USER_ALREADY_IN_CHAT,					"Пользователь уже находится в чате!"									},
-	{ server_status_code::CHAT__IMPOSSIBLE_ADD_TO_PRIVATE_CHAT_ERROR,	"Невозможно добавить пользователя в приватный чат!"									},
-
+	{ server_status_code::CHAT__IMPOSSIBLE_ADD_TO_PRIVATE_CHAT_ERROR,	"Невозможно добавить пользователя в приватный чат!"						},
+	{ server_status_code::CHAT__CHAT_PARTICIPANTS_LIMIT_EXCEEDED_ERROR,	"Превышен лимит участников в чате!"										},
+	{ server_status_code::CHAT__TEXT_MESSAGE_TOO_LARGE,					"Текстовое сообщение слишком длинное!"									},
+	{ server_status_code::CHAT__FILE_SIZE_TOO_LARGE,					"Файл слишком большой!"													},
+	
 	{ server_status_code::SYS__INTERNAL_SERVER_ERROR,					"Ошибка на стороне сервера!"											},
 };
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fstream>
 #include <iostream>
 #include "include/general/tools/utf8_encoder.hpp"
 #include "include/general/network/networking.hpp"
@@ -15,9 +16,20 @@
 using namespace farconn::general;
 using namespace farconn::server;
 
+std::filesystem::path p = std::filesystem::path(R"(D:\\farconn_files_storage\\folder)");
 int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
+
+	std::filesystem::create_directories(p);
+
+	auto d = p.c_str();
+	std::ofstream of;
+	of.open(p / std::filesystem::path("input.txt"), std::ios_base::app);
+
+	of << "sdafsdfasdf";
+
+	of.close();
 
 	std::string q = "chat_create -public \"24-24-asfs-324\" \"Мой чат\"";
 

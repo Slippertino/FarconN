@@ -15,12 +15,27 @@ enum class chat_type {
 	PUBLIC = 2,
 };
 
+struct chat_info {
+	std::string id;
+	std::string title;
+	std::string type;
+	size_t size;
+};
+
 struct chat_creation_params {
 	std::string id;
 	std::string title = "";
 	std::string type;
 	size_t size;
 	std::vector<std::string> default_users_ids;
+};
+
+struct chat_post_params {
+	std::string id;
+	std::string sender_id;
+	std::string chat_id;
+	std::string type;
+	std::string content;
 };
 
 FARCONN_NAMESPACE_END

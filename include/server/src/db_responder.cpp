@@ -53,6 +53,8 @@ void db_responder::setup() {
 
 		connections.add(con);
 	}
+
+	fs::create_directories(files_storage_path);
 }
 
 server_status_code db_responder::signup_user(const std::string& login, const std::string& password) {
@@ -670,9 +672,16 @@ server_status_code db_responder::add_user_to_chat(const std::string& chat_id, co
 	return code;
 }
 
-server_status_code db_responder::get_chat_type(const std::string& chat_id, std::string& type) {
+server_status_code db_responder::get_chat_info(
+	const std::string& user_id, 
+	const std::string& chat_id, 
+	chat_info& info
+) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_chat_type_query(chat_id);
+	auto queries = db_queries_generator::get_chat_info_queries(
+		user_id,
+		chat_id
+	);
 
 	auto code = server_status_code::SYS__OKEY;
 
@@ -684,7 +693,13 @@ server_status_code db_responder::get_chat_type(const std::string& chat_id, std::
 		if (results->rowsCount()) {
 			results->beforeFirst();
 			results->next();
-			type = results->getString("type");
+
+			info.id = chat_id;
+			info.type = results->getString("type");
+			info.size = results->getInt("size");
+			info.title = results->isNull("title")
+				? results->getString("name")
+				: results->getString("title");
 		}
 		else {
 			code = server_status_code::CHAT__NONEXISTEN_CHAT_ERROR;
@@ -757,6 +772,90 @@ server_status_code db_responder::exclude_user_from_chat(const std::string& user_
 	comps.connection->setAutoCommit(true);
 
 	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_messages_tokens(std::unordered_set<std::string>& tokens) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_messages_tokens_query();
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		results->beforeFirst();
+		results->next();
+		while (!results->isAfterLast()) {
+			auto id = results->getString("id");
+			tokens.insert(id);
+			results->next();
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::post_message(const chat_post_params& params) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_post_message_query(params);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	comps.connection->setAutoCommit(false);
+
+	try {
+		comps.exec->executeUpdate(queries[0]);
+		comps.connection->commit();
+	}
+	catch (const std::exception& ex) {
+		comps.connection->rollback();
+
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	comps.connection->setAutoCommit(true);
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::save_file(
+	const std::string& chat_id,
+	const std::string& name, 
+	const std::string& content
+) {
+	auto code = server_status_code::SYS__OKEY;
+
+	auto chat_path = files_storage_path / fs::path(chat_id);
+	fs::create_directories(chat_path);
+
+	std::ofstream output;
+
+	try {
+		output.open(chat_path / std::filesystem::path(name));
+
+		output << content;
+	}
+	catch (const std::exception& ex) {
+		LOG() << "Ошибка при попытке записи в файл: " << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+	
+	if (output.is_open()) {
+		output.close();
+	}
 
 	return code;
 }
