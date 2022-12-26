@@ -5,10 +5,6 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-selection_handler::selection_handler(server_middleware* sm, const command_entity* ce, command_response* cr, bool auth_required) :
-	handler(sm, ce, cr, auth_required)
-{ }
-
 server_status_code selection_handler::try_convert_to_offset(const std::string& offsetStr, selection_base* obj) {
 	return try_convert_to_selection_setting(offsetStr, obj->offset);
 }

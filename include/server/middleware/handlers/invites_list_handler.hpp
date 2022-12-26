@@ -7,7 +7,8 @@ using namespace farconn::general;
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-class invites_list_handler final : public selection_handler {
+class invites_list_handler final : public handler, 
+								   public selection_handler {
 public:
 	invites_list_handler(class server_middleware*, const command_entity*, command_response*);
 

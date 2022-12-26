@@ -860,6 +860,44 @@ server_status_code db_responder::save_file(
 	return code;
 }
 
+server_status_code db_responder::get_messages_list(const chat_messages_selection& params, std::vector<chat_message_info>& info) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_messages_list_query(params);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		results->beforeFirst();
+		results->next();
+
+		while (!results->isAfterLast()) {
+			chat_message_info cur;
+
+			cur.id = results->getString("id");
+			cur.sender_name = results->getString("name");
+			cur.time_s = results->getDouble("time");
+			cur.type = results->getString("type");
+			cur.content = results->getString("content");
+
+			info.push_back(cur);
+
+			results->next();
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
 db_responder::~db_responder() {
 	while (!connections.empty()) {
 		auto con = connections.wait_and_erase();

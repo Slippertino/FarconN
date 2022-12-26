@@ -10,7 +10,7 @@ FARCONN_NAMESPACE_BEGIN(server)
 const double search_handler::min_relevance_value = 0.3;
 
 search_handler::search_handler(server_middleware* sm, const command_entity* ce, command_response* cr) :
-	selection_handler(sm, ce, cr, true)
+	handler(sm, ce, cr, true)
 { }
 
 bool search_handler::is_command_valid() {

@@ -15,6 +15,7 @@
 
 using namespace farconn::general;
 using namespace farconn::server;
+using namespace std;
 
 std::filesystem::path p = std::filesystem::path(R"(D:\\farconn_files_storage\\folder)");
 int main() {
@@ -23,6 +24,16 @@ int main() {
 
 	std::filesystem::create_directories(p);
 
+
+
+	auto input = 1447431619.012;
+
+	auto r = chrono::system_clock::to_time_t(
+		chrono::system_clock::time_point(
+			chrono::duration_cast<chrono::seconds>(
+				chrono::duration<double>(input)
+				)));
+	auto tm = *std::localtime(&r);
 	auto d = p.c_str();
 	std::ofstream of;
 	of.open(p / std::filesystem::path("input.txt"), std::ios_base::app);

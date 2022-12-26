@@ -6,7 +6,8 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-class search_handler final : public selection_handler {
+class search_handler final : public handler, 
+							 public selection_handler {
 public:
 	search_handler(class server_middleware*, const command_entity*, command_response*);
 

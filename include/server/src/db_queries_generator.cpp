@@ -478,16 +478,6 @@ std::vector<std::string> db_queries_generator::get_chat_info_queries(std::string
 		<< "where chat_id = " << Q(chat_id) << " and " << "user_id <> " << Q(user_id) << ";";
 	reset(ostr, res);
 
-	/*ostr << "select type, title, size "
-		<< "from " << chats_name_tb << " "
-		<< "where id = " << Q(chat_id) << ";";
-	reset(ostr, res);
-
-	ostr << "select name from " << users_in_chats_name_tb << " "
-		<< "inner join " << users_name_tb << " on " << users_name_tb << ".id = " << users_in_chats_name_tb << ".user_id "
-		<< "where chat_id = " << Q(chat_id) << " and " << "user_id <> " << Q(user_id) << ";";
-	reset(ostr, res);*/
-
 	return res;
 }
 
@@ -577,6 +567,40 @@ std::vector<std::string> db_queries_generator::get_messages_tokens_query() {
 	std::ostringstream ostr;
 
 	ostr << "select id from " << messages_name_tb << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_messages_list_query(chat_messages_selection params) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({
+		&params.chat_id
+	});
+
+	ostr
+		<< "select "
+		<< messages_name_tb << ".id,"
+		<< "unix_timestamp(" << messages_name_tb << ".time) as time,"
+		<< messages_name_tb << ".type,"
+		<< messages_name_tb << ".content,"
+		<< users_name_tb << ".name "
+		<< "from " << messages_name_tb << " "
+		<< "inner join " << users_name_tb << " on " << messages_name_tb << ".sender_id = " << users_name_tb << ".id "
+		<< "where " << messages_name_tb << ".chat_id = " << Q(params.chat_id) << " ";
+
+	if (params.last_actual_message_id.has_value()) {
+		auto last = params.last_actual_message_id.value();
+		to_mysql_format({ &last });
+
+		ostr << " and unix_timestamp(" << messages_name_tb << ".time) > ("
+			<< "select unix_timestamp(time) from " << messages_name_tb << " where id = " << Q(last) << ") ";
+	}
+
+	ostr << "order by time desc "
+		<< "limit " << params.offset << "," << params.limit << ";";
 	reset(ostr, res);
 
 	return res;

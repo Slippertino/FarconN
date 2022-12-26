@@ -22,6 +22,14 @@ struct chat_info {
 	size_t size;
 };
 
+struct chat_message_info {
+	std::string id;
+	std::string sender_name;
+	double time_s;
+	std::string type;
+	std::string content;
+};
+
 struct chat_creation_params {
 	std::string id;
 	std::string title = "";

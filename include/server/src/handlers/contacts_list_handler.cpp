@@ -6,7 +6,7 @@
 FARCONN_NAMESPACE_BEGIN(server)
 
 contacts_list_handler::contacts_list_handler(server_middleware* sm, const command_entity* ce, command_response* cr) :
-	selection_handler(sm, ce, cr, true)
+	handler(sm, ce, cr, true)
 { }
 
 bool contacts_list_handler::is_command_valid() {

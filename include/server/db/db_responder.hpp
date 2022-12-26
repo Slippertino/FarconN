@@ -68,6 +68,8 @@ public:
 	server_status_code post_message(const chat_post_params&);
 	server_status_code save_file(const std::string&, const std::string&, const std::string&);
 
+	server_status_code get_messages_list(const chat_messages_selection&, std::vector<chat_message_info>&);
+
 	~db_responder();
 
 private:
