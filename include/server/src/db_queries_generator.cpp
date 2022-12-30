@@ -467,15 +467,22 @@ std::vector<std::string> db_queries_generator::get_chat_info_queries(std::string
 
 	ostr 
 		<< "select "
-		<< users_name_tb << ".name,"
-		<< chats_name_tb << ".type,"
-		<< chats_name_tb << ".title,"
-		<< chats_name_tb << ".size "
+		<< chats_name_tb << ".type as type,"
+		<< "case "
+		<< "	when " << chats_name_tb << ".type = " << Q("public")
+		<< "	then " << chats_name_tb << ".title "
+		<< "	when " << chats_name_tb << ".type = " << Q("private")
+		<< "	then ("
+		<< "		select " << users_name_tb << ".name as name"
+		<< "		from " << users_in_chats_name_tb
+		<< "		inner join " << users_name_tb << " on " << users_in_chats_name_tb << ".user_id = " << users_name_tb << ".id"
+		<< "		where " << users_in_chats_name_tb << ".chat_id = " << chats_name_tb << ".id and " << users_in_chats_name_tb << ".user_id <> " << Q(user_id)
+		<< "	)"
+		<< "end as title,"
+		<< chats_name_tb << ".size as size "
 		<< "from " << users_in_chats_name_tb << " "
 		<< "inner join " << chats_name_tb << " on " << chats_name_tb << ".id = " << users_in_chats_name_tb << ".chat_id "
-		<< "inner join " << users_name_tb << " on " << users_name_tb << ".id = " << users_in_chats_name_tb << ".user_id "
-		<< "and " << chats_name_tb << ".type = " << Q("private") << " "
-		<< "where chat_id = " << Q(chat_id) << " and " << "user_id <> " << Q(user_id) << ";";
+		<< "where chat_id = " << Q(chat_id) << " and " << "user_id = " << Q(user_id) << ";";
 	reset(ostr, res);
 
 	return res;
@@ -601,6 +608,20 @@ std::vector<std::string> db_queries_generator::get_messages_list_query(chat_mess
 
 	ostr << "order by time desc "
 		<< "limit " << params.offset << "," << params.limit << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_user_chats_tokens_query(std::string user_id) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &user_id });
+
+	ostr << "select chat_id as id "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "where user_id = " << Q(user_id);
 	reset(ostr, res);
 
 	return res;

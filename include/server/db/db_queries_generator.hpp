@@ -48,6 +48,7 @@ public:
 	static std::vector<std::string> get_post_message_query(chat_post_params);
 	static std::vector<std::string> get_messages_tokens_query();
 	static std::vector<std::string> get_messages_list_query(chat_messages_selection);
+	static std::vector<std::string> get_user_chats_tokens_query(std::string);
 
 private:
 	static void to_mysql_format(const std::initializer_list<std::string*>&);

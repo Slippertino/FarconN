@@ -6,12 +6,12 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-struct primitive_user_info {
+struct external_user_info {
 	std::string login;
 	std::string name;
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(
-		primitive_user_info,
+		external_user_info,
 		login,
 		name
 	)

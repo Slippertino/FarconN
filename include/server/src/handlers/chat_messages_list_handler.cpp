@@ -28,7 +28,7 @@ void chat_messages_list_handler::execute() {
 	auto& opt = in->options[0];
 	auto& params = in->params;
 
-	chat_messages_info info;
+	ex_chat_messages_info info;
 	chat_messages_selection selection;
 
 	auto& user_id = session->native_token;
@@ -42,18 +42,15 @@ void chat_messages_list_handler::execute() {
 	server_status_code code = options_params_mapper.at(opt).first(this, selection);
 	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
-	std::vector<chat_message_info> messages;
+	std::vector<internal_message_info> messages;
 	code = db->get_messages_list(selection, messages);
 	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 	std::transform(messages.crbegin(), messages.crend(),  std::back_inserter(info), [&](const auto& val) {
-		return basic_message_info{
-			val.id,
-			val.sender_name,
-			convert_seconds_to_date(val.time_s),
-			val.type,
-			val.content
-		};
+		return val.to_external(
+			&chat_messages_list_handler::convert_seconds_to_date,
+			time_template
+		);
 	});
 
 	nlohmann::json js;
@@ -70,7 +67,7 @@ server_status_code chat_messages_list_handler::handle_any(chat_messages_selectio
 		return server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR;
 	}
 
-	if (try_convert_to_offset(params[3], &selection) != SUCCESS) {
+	if (try_convert_to_limit(params[3], &selection) != SUCCESS) {
 		return server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR;
 	}
 
@@ -85,24 +82,12 @@ server_status_code chat_messages_list_handler::handle_new(chat_messages_selectio
 	return SUCCESS;
 }
 
-time_t chat_messages_list_handler::convert_seconds_to_time_t(double time) {
-	return std::chrono::system_clock::to_time_t(
-		std::chrono::system_clock::time_point(
-			std::chrono::duration_cast<std::chrono::seconds>(std::chrono::duration<double>(time))
-		)
-	);
-}
-
-std::string chat_messages_list_handler::convert_seconds_to_date(double time) {
-	auto t = convert_seconds_to_time_t(time);
-	auto tm = *std::localtime(&t);
-	return (std::ostringstream() << std::put_time(&tm, "%d/%m/%Y %H:%M:%S")).str();
-}
-
 const std::unordered_map<std::string, std::pair<chat_messages_list_handler::option_handler, size_t>>
 chat_messages_list_handler::options_params_mapper = {
 	{ "any", { &chat_messages_list_handler::handle_any, 4 } },
 	{ "new", { &chat_messages_list_handler::handle_new, 3 } },
 };
+
+const std::string chat_messages_list_handler::time_template = "%d/%m/%Y %H:%M:%S";
 
 FARCONN_NAMESPACE_END

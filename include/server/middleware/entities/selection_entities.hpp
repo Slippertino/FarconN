@@ -34,4 +34,8 @@ struct chat_messages_selection : selection_base {
 	std::optional<std::string> last_actual_message_id = std::nullopt;
 };
 
+struct chats_selection : selection_base {
+	std::string user_id;
+};
+
 FARCONN_NAMESPACE_END

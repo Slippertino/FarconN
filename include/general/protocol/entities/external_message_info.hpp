@@ -6,7 +6,7 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-struct basic_message_info {
+struct external_message_info {
 	std::string id;
 	std::string sender_name;
 	std::string time;
@@ -14,7 +14,7 @@ struct basic_message_info {
 	std::string content;
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(
-		basic_message_info,
+		external_message_info,
 		id,
 		sender_name,
 		time,

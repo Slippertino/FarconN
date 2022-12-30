@@ -27,7 +27,7 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 	searching.query = query;
 	searching.results.clear();
 
-	std::list<primitive_user_info> info;
+	std::list<internal_user_info> info;
 	auto code = db->get_users_searching_list(session->login, info);
 
 	if (code != SUCCESS) {
@@ -64,7 +64,8 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 void search_handler::execute() {
 	auto& params = in->params;
 	searching_selection selection;
-	searching_results info;
+
+	ex_searching_results info;
 
 	selection.query = params[1];
 
@@ -88,7 +89,7 @@ void search_handler::execute() {
 
 	auto i = selection.offset;
 	while (i < searching.results.size() && (i - selection.offset) < selection.limit) {
-		info.insert({ i, searching.results.at(i) });
+		info.insert({ i, searching.results.at(i).to_external()});
 		++i;
 	}
 

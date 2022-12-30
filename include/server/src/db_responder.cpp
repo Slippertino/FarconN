@@ -531,7 +531,7 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 	return code;
 }
 
-server_status_code db_responder::get_users_searching_list(const std::string& login, std::list<primitive_user_info>& info) {
+server_status_code db_responder::get_users_searching_list(const std::string& login, std::list<basic_user_info>& info) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_users_searching_list_query(login, {"login", "name"});
 
@@ -696,10 +696,8 @@ server_status_code db_responder::get_chat_info(
 
 			info.id = chat_id;
 			info.type = results->getString("type");
+			info.title = results->getString("title");
 			info.size = results->getInt("size");
-			info.title = results->isNull("title")
-				? results->getString("name")
-				: results->getString("title");
 		}
 		else {
 			code = server_status_code::CHAT__NONEXISTEN_CHAT_ERROR;
@@ -884,6 +882,38 @@ server_status_code db_responder::get_messages_list(const chat_messages_selection
 			cur.content = results->getString("content");
 
 			info.push_back(cur);
+
+			results->next();
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_user_chats_tokens(const std::string& user_id, std::vector<std::string>& chats) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_user_chats_tokens_query(user_id);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		results->beforeFirst();
+		results->next();
+
+		while (!results->isAfterLast()) {
+			auto id = results->getString("id");
+
+			chats.push_back(id);
 
 			results->next();
 		}

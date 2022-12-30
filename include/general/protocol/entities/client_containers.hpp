@@ -3,14 +3,16 @@
 #include <map>
 #include <unordered_map>
 #include <nlohmann/json.hpp>
-#include "primitive_user_info.hpp"
-#include "basic_message_info.hpp"
+#include "external_user_info.hpp"
+#include "external_message_info.hpp"
+#include "external_chat_info.hpp"
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-using invitations_info   = std::unordered_map<std::string, std::vector<primitive_user_info>>;
-using contacts_info      = std::vector<primitive_user_info>;
-using searching_results  = std::unordered_map<size_t, primitive_user_info>;
-using chat_messages_info = std::vector<basic_message_info>;
+using ex_invitations_info   = std::unordered_map<std::string, std::vector<external_user_info>>;
+using ex_contacts_info      = std::vector<external_user_info>;
+using ex_searching_results  = std::unordered_map<size_t, external_user_info>;
+using ex_chat_messages_info = std::vector<external_message_info>;
+using ex_chats_info		    = std::vector<external_chat_info>;
 
 FARCONN_NAMESPACE_END

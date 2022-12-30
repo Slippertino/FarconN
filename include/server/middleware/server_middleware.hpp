@@ -37,6 +37,7 @@ class server_middleware {
 	DECLARE_HANDLER(chat_leave_handler)
 	DECLARE_HANDLER(chat_post_handler)
 	DECLARE_HANDLER(chat_messages_list_handler)
+	DECLARE_HANDLER(chat_list_handler)
 
 public:
 	server_middleware() = delete;

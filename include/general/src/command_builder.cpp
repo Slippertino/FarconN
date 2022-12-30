@@ -32,11 +32,7 @@ void command_builder::clear_options() {
 }
 
 command_builder& command_builder::add_parameter(const std::string& param) {
-	static const std::regex quotes_pattern = std::regex(R"((.*\s.*|))");
-
-	std::regex_match(param, quotes_pattern) 
-		? command.params.push_back("\"" + param + "\"")
-		: command.params.push_back(param);
+	command.params.push_back("\"" + param + "\"");
 
 	return *this;
 }

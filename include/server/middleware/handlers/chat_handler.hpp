@@ -9,6 +9,10 @@ public:
 	chat_handler(class server_middleware*, const command_entity*, command_response*, bool);
 
 protected:
+	static time_t convert_seconds_to_time_t(double);
+	static std::string convert_seconds_to_date(double, const std::string&);
+
+protected:
 	virtual bool is_command_valid() override = 0;
 	virtual void execute() override = 0;
 

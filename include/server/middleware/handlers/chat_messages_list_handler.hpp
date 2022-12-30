@@ -15,9 +15,6 @@ protected:
 	void execute() override final;
 
 private:
-	time_t convert_seconds_to_time_t(double);
-	std::string convert_seconds_to_date(double);
-
 	server_status_code handle_any(chat_messages_selection&);
 	server_status_code handle_new(chat_messages_selection&);
 
@@ -25,6 +22,7 @@ private:
 	using option_handler = std::function<server_status_code(chat_messages_list_handler*, chat_messages_selection&)>;
 
 	static const std::unordered_map<std::string, std::pair<option_handler, size_t>> options_params_mapper;
+	static const std::string time_template;
 };
 
 FARCONN_NAMESPACE_END

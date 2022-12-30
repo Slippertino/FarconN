@@ -36,7 +36,7 @@ void invites_list_handler::execute() {
 	invites_selection selection;
 	selection.login = session->login;
 
-	invitations_info info;
+	ex_invitations_info info;
 	for (auto& opt : options) {
 		auto desc = available_options_descs.at(opt.second);
 		auto& offsetStr = params[2 * opt.first + 1];

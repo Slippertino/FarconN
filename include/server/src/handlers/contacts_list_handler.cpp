@@ -19,7 +19,7 @@ void contacts_list_handler::execute() {
 	contacts_selection selection;
 	selection.login = session->login;
 
-	contacts_info info;
+	ex_contacts_info info;
 
 	SERVER_ASSERT_EX(
 		out, 

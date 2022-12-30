@@ -11,7 +11,7 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 struct searching_cache {
 	std::string query;
-	std::unordered_map<size_t, primitive_user_info> results;
+	std::unordered_map<size_t, internal_user_info> results;
 };
 
 FARCONN_NAMESPACE_END

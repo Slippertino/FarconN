@@ -20,7 +20,7 @@ void chat_add_handler::execute() {
 	auto is_part = db->is_user_chat_participant(session->native_token, chat_id);
 	SERVER_ASSERT_EX(out, is_part != SUCCESS, is_part)
 
-	chat_info info;
+	internal_chat_info info;
 	SERVER_ASSERT(out, db->get_chat_info(session->native_token, chat_id, info) != SUCCESS)
 	SERVER_ASSERT_EX(
 		out,
