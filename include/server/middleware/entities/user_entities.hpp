@@ -8,6 +8,8 @@
 #include "../../../general/tools/macro.hpp"
 #include "../general/protocol/entities/entities.hpp"
 
+using namespace farconn::general;
+
 FARCONN_NAMESPACE_BEGIN(server)
 
 enum class users_relations_type {
@@ -25,13 +27,14 @@ struct field_description {
 
 using user_profile = std::map<std::string, field_description>;
 
-struct internal_user_info {
+struct user_info {
 	std::string id;
 	std::string login;
 	std::string name;
 
-	external_user_info to_external() const {
-		return external_user_info{
+	ex_user_info to_external() const {
+		return ex_user_info{
+			id,
 			login,
 			name
 		};

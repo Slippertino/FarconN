@@ -16,34 +16,34 @@ enum class chat_type {
 	PUBLIC = 2,
 };
 
-struct internal_chat_info {
+struct chat_info {
 	std::string id;
 	std::string title;
 	std::string type;
 	size_t size;
 
-	external_chat_info to_external() const {
-		return external_chat_info{
+	ex_chat_info to_external() const {
+		return ex_chat_info{
 			id,
 			title,
 			size,
-			external_message_info{}
+			ex_message_info{}
 		};
 	}
 };
 
-struct internal_message_info {
+struct message_info {
 	std::string id;
 	std::string sender_name;
 	double time_s;
 	std::string type;
 	std::string content;
 
-	external_message_info to_external(
+	ex_message_info to_external(
 		const std::function<std::string(double, const std::string&)>& time_converter,
 		const std::string& time_tmpl
 	) const {
-		return external_message_info{
+		return ex_message_info{
 			id,
 			sender_name,
 			time_converter(time_s, time_tmpl),

@@ -463,7 +463,7 @@ server_status_code db_responder::delete_contact(const std::string& login, const 
 	return code;
 }
 
-server_status_code db_responder::get_invites_list(const invites_selection& selection, invitations_info& info) {
+server_status_code db_responder::get_invites_list(const invites_selection& selection, ex_invitations_info& info) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_invites_list_query(selection);
 
@@ -478,10 +478,11 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
+			auto id = res->getString("id");
 			auto login = res->getString("login");
 			auto name = res->getString("name");
 
-			info[list_type].push_back({ login, name });
+			info[list_type].insert({ id, { id, login, name } });
 
 			res->next();
 		}
@@ -498,7 +499,7 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 	return code;
 }
 
-server_status_code db_responder::get_contacts_list(const contacts_selection& selection, contacts_info& info) {
+server_status_code db_responder::get_contacts_list(const contacts_selection& selection, ex_contacts_info& info) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_contacts_list_query(selection);
 
@@ -511,10 +512,11 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
+			auto id = res->getString("id");
 			auto login = res->getString("login");
 			auto name = res->getString("name");
 
-			info.push_back({ login, name });
+			info.insert({ id, { id, login, name } });
 
 			res->next();
 		}
@@ -531,9 +533,12 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 	return code;
 }
 
-server_status_code db_responder::get_users_searching_list(const std::string& login, std::list<basic_user_info>& info) {
+server_status_code db_responder::get_users_searching_list(const std::string& login, std::list<user_info>& info) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_users_searching_list_query(login, {"login", "name"});
+	auto queries = db_queries_generator::get_users_searching_list_query(
+		login, 
+		{"id", "login", "name"}
+	);
 
 	server_status_code code;
 
@@ -544,10 +549,11 @@ server_status_code db_responder::get_users_searching_list(const std::string& log
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
+			auto id = res->getString("id");
 			auto login = res->getString("login");
 			auto name = res->getString("name");
 
-			info.push_back({ login, name });
+			info.push_back({ id, login, name });
 
 			res->next();
 		}
@@ -858,7 +864,7 @@ server_status_code db_responder::save_file(
 	return code;
 }
 
-server_status_code db_responder::get_messages_list(const chat_messages_selection& params, std::vector<chat_message_info>& info) {
+server_status_code db_responder::get_messages_list(const chat_messages_selection& params, std::vector<message_info>& info) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_messages_list_query(params);
 
@@ -873,7 +879,7 @@ server_status_code db_responder::get_messages_list(const chat_messages_selection
 		results->next();
 
 		while (!results->isAfterLast()) {
-			chat_message_info cur;
+			message_info cur;
 
 			cur.id = results->getString("id");
 			cur.sender_name = results->getString("name");
@@ -916,6 +922,38 @@ server_status_code db_responder::get_user_chats_tokens(const std::string& user_i
 			chats.push_back(id);
 
 			results->next();
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG() << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_chat_party(const chat_party_selection& selection, ex_chat_party_info& info) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_chat_party_query(selection);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto res = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		res->beforeFirst(); res->next();
+		while (!res->isAfterLast()) {
+			auto id = res->getString("id");
+			auto login = res->getString("login");
+			auto name = res->getString("name");
+
+			info.insert({ id, { id, login, name } });
+
+			res->next();
 		}
 	}
 	catch (const std::exception& ex) {

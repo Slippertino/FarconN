@@ -17,3 +17,4 @@
 #include "chat_post_handler.hpp"
 #include "chat_messages_list_handler.hpp"
 #include "chat_list_handler.hpp"
+#include "chat_party_list_handler.hpp"

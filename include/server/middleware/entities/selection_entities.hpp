@@ -38,4 +38,9 @@ struct chats_selection : selection_base {
 	std::string user_id;
 };
 
+struct chat_party_selection : selection_base {
+	std::string chat_id;
+	std::string user_id;
+};
+
 FARCONN_NAMESPACE_END

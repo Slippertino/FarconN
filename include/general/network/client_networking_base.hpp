@@ -72,7 +72,6 @@ protected:
 			}
 
 			if (storage.can_write(socket)) {
-				//LOG() << "Òóòààà...\n";
 				std::string msg;
 
 				messages_to_send_locker.lock();

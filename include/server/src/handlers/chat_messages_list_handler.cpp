@@ -42,16 +42,19 @@ void chat_messages_list_handler::execute() {
 	server_status_code code = options_params_mapper.at(opt).first(this, selection);
 	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
-	std::vector<internal_message_info> messages;
+	std::vector<message_info> messages;
 	code = db->get_messages_list(selection, messages);
 	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
-	std::transform(messages.crbegin(), messages.crend(),  std::back_inserter(info), [&](const auto& val) {
-		return val.to_external(
-			&chat_messages_list_handler::convert_seconds_to_date,
-			time_template
-		);
-	});
+	for (auto& msg : messages) {
+		info.insert({
+			msg.id,
+			msg.to_external(
+				&chat_messages_list_handler::convert_seconds_to_date,
+				time_template
+			)
+		});
+	}
 
 	nlohmann::json js;
 	nlohmann::to_json(js, info);

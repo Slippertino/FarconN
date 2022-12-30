@@ -22,11 +22,11 @@ void chat_list_handler::execute() {
 
 	ex_chats_info result;
 	for (auto& id : chats) {
-		internal_chat_info chat;
+		chat_info chat;
 		code = db->get_chat_info(user_id, id, chat);
 		SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
-		std::vector<internal_message_info> last_message;
+		std::vector<message_info> last_message;
 		code = db->get_messages_list(chat_messages_selection{
 			0, 1, id, std::nullopt
 		}, last_message);
@@ -40,7 +40,10 @@ void chat_list_handler::execute() {
 			);
 		}
 
-		result.push_back(std::move(chat_info));
+		result.insert({ 
+			chat_info.id, 
+			std::move(chat_info) 
+		});
 	}
 
 	nlohmann::json js;

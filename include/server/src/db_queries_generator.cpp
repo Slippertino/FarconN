@@ -361,7 +361,7 @@ std::vector<std::string> db_queries_generator::get_invites_list_query(invites_se
 	});
 
 	ostr
-		<< "select login, " << users_name_tb << ".name as name "
+		<< "select login, " << users_name_tb << ".name as name," << users_name_tb << ".id as id "
 		<< "from " << requests_name_tb << " "
 		<< "inner join " << users_name_tb << " on " 
 		<< users_name_tb << ".login " << " = " << requests_name_tb << "." << selection.selection_column_name << " "
@@ -379,7 +379,7 @@ std::vector<std::string> db_queries_generator::get_contacts_list_query(contacts_
 	to_mysql_format({ &selection.login });
 
 	ostr
-		<< "select login" << "," << "name "
+		<< "select id, login, name "
 		<< "from " << contacts_name_tb << " "
 		<< "inner join " << users_name_tb << " on "
 		<< users_name_tb << ".login " << " = " << contacts_name_tb << "." << "u_from" << " or " 
@@ -622,6 +622,21 @@ std::vector<std::string> db_queries_generator::get_user_chats_tokens_query(std::
 	ostr << "select chat_id as id "
 		<< "from " << users_in_chats_name_tb << " "
 		<< "where user_id = " << Q(user_id);
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_chat_party_query(chat_party_selection selection) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &selection.chat_id, &selection.user_id });
+
+	ostr << "select id, login, name "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "inner join " << users_name_tb << " on " << users_in_chats_name_tb << ".user_id = " << users_name_tb << ".id "
+		<< "where chat_id = " << Q(selection.chat_id) << " and user_id <> " << Q(selection.user_id);
 	reset(ostr, res);
 
 	return res;

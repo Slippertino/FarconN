@@ -51,7 +51,7 @@ public:
 
 	server_status_code get_contacts_list(const contacts_selection&, ex_contacts_info&);
 
-	server_status_code get_users_searching_list(const std::string&, std::list<internal_user_info>&);
+	server_status_code get_users_searching_list(const std::string&, std::list<user_info>&);
 	
 	server_status_code get_chats_tokens(std::unordered_set<std::string>&);
 	server_status_code create_chat(const chat_creation_params&);
@@ -60,7 +60,7 @@ public:
 
 	server_status_code add_user_to_chat(const std::string&, const std::string&);
 
-	server_status_code get_chat_info(const std::string&, const std::string&, internal_chat_info&);
+	server_status_code get_chat_info(const std::string&, const std::string&, chat_info&);
 	server_status_code is_user_chat_participant(const std::string&, const std::string&);
 	server_status_code exclude_user_from_chat(const std::string&, const std::string&);
 
@@ -68,8 +68,10 @@ public:
 	server_status_code post_message(const chat_post_params&);
 	server_status_code save_file(const std::string&, const std::string&, const std::string&);
 
-	server_status_code get_messages_list(const chat_messages_selection&, std::vector<internal_message_info>&);
+	server_status_code get_messages_list(const chat_messages_selection&, std::vector<message_info>&);
 	server_status_code get_user_chats_tokens(const std::string&, std::vector<std::string>&);
+
+	server_status_code get_chat_party(const chat_party_selection&, ex_chat_party_info&);
 
 	~db_responder();
 

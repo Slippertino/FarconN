@@ -27,7 +27,7 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 	searching.query = query;
 	searching.results.clear();
 
-	std::list<internal_user_info> info;
+	std::list<user_info> info;
 	auto code = db->get_users_searching_list(session->login, info);
 
 	if (code != SUCCESS) {

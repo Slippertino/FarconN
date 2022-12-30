@@ -3,22 +3,19 @@
 #include <string>
 #include <nlohmann/json.hpp>
 #include "../../tools/macro.hpp"
-#include "external_message_info.hpp"
 
 FARCONN_NAMESPACE_BEGIN(general)
 
-struct external_chat_info {
+struct ex_user_info {
 	std::string id;
+	std::string login;
 	std::string name;
-	size_t size;
-	external_message_info last_message;
 
 	NLOHMANN_DEFINE_TYPE_INTRUSIVE(
-		external_chat_info,
+		ex_user_info,
 		id,
-		name,
-		size,
-		last_message
+		login,
+		name
 	)
 };
 
