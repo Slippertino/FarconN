@@ -15,10 +15,10 @@ networking_storage::networking_storage() {
 	auto erState = WSAStartup(MAKEWORD(2, 2), &wsData);
 
 	if (erState) {
-		LOG() << BUILD_ERROR_MESSAGE("Ошибка инициализации сокетных интерфейсов!");
+		LOG(NETWORK) << BUILD_ERROR_MESSAGE("Ошибка инициализации сокетных интерфейсов!");
 	}
 	else {
-		LOG() << "Успешная инициализация сокетных интерфейсов!\n";
+		LOG(NETWORK) << "Успешная инициализация сокетных интерфейсов!\n";
 	}
 
 	run();
@@ -90,7 +90,7 @@ void networking_storage::update_descs(std::map<UINT, WSAPOLLFD>& descs) {
 		auto result = WSAPoll(transformed_descs.data(), transformed_descs.size(), NULL);
 
 		if (result == SOCKET_ERROR) {
-			LOG() << BUILD_ERROR_MESSAGE("Ошибка при выполнении инструкции WSAPoll!");
+			LOG(NETWORK) << BUILD_ERROR_MESSAGE("Ошибка при выполнении инструкции WSAPoll!");
 		}
 
 		for (auto& desc : transformed_descs) {

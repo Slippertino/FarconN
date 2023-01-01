@@ -14,6 +14,18 @@ void utf8_encoder::from_utf8_to_local(std::string& source) {
 	from_unicode(src_uni, source, CP_ACP);
 }
 
+void utf8_encoder::from_local_to_utf8_list(const std::initializer_list<std::string*>& sources) {
+	for (auto& src : sources) {
+		from_local_to_utf8(*src);
+	}
+}
+
+void utf8_encoder::from_utf8_to_local_list(const std::initializer_list<std::string*>& sources) {
+	for (auto src : sources) {
+		from_utf8_to_local(*src);
+	}
+}
+
 void utf8_encoder::to_unicode(const std::string& source, std::wstring& result, UINT code_page) {
 	int size = MultiByteToWideChar(code_page, MB_COMPOSITE, source.c_str(), source.length(), nullptr, 0);
 

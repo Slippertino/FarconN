@@ -16,6 +16,8 @@ void profile_get_handler::execute() {
 	auto& options = in->options;
 	auto& params = in->params;
 
+	ex_user_profile result;
+
 	auto& user_login = params[1];
 
 	server_status_code code;
@@ -35,9 +37,13 @@ void profile_get_handler::execute() {
 		auto& field = profile_fields[cur.second];
 
 		if (field.value.has_value()) {
-			out->params.push_back(field.value.value());
+			result.data.insert({ field.name, field.value.value() });
 		}
 	}
+
+	out->params.push_back(
+		result.to_string()
+	);
 
 	SERVER_ASSERT_EX(out, true, SUCCESS)
 }

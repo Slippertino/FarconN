@@ -5,10 +5,10 @@
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-class chat_list_handler final : public chat_handler, 
-								public selection_handler {
+class chats_list_handler final : public chat_handler, 
+								 public selection_handler {
 public:
-	chat_list_handler(class server_middleware*, const command_entity*, command_response*);
+	chats_list_handler(class server_middleware*, const command_entity*, command_response*);
 
 protected:
 	bool is_command_valid() override final;

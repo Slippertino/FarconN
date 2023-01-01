@@ -89,13 +89,13 @@ void search_handler::execute() {
 
 	auto i = selection.offset;
 	while (i < searching.results.size() && (i - selection.offset) < selection.limit) {
-		info.insert({ i, searching.results.at(i).to_external()});
+		info.data.insert({ i, searching.results.at(i).to_external()});
 		++i;
 	}
 
-	nlohmann::json js;
-	nlohmann::to_json(js, info);
-	out->params.push_back(js.dump());
+	out->params.push_back(
+		info.to_string()
+	);
 
 	SERVER_ASSERT_EX(out, true, SUCCESS)
 }

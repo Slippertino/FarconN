@@ -8,72 +8,113 @@ std::shared_ptr<command_entity> protocol_interpreter::interpret(const std::strin
 	query_arguments args;
 
 	split_query(query, args);
-
-	if (!args.empty()) {
-		extract_command(args.front(), result);
-		extract_options(args.front(), result);
-		args.pop_front();
-	}
-
-	if (!args.empty()) {
-		extract_parameters(args.front(), result);
-	}
+	extract_command(args, result);
+	extract_options(args, result);
+	extract_parameters(args, result);
 
 	return std::shared_ptr<command_entity>(result);
 }
 
 void protocol_interpreter::split_query(const std::string& query, query_arguments& args) {
-	static const std::regex split_pattern = std::regex(R"((.*?)([\"{}].*)$)");
+	static const char composite_delimeter_opened = '<';
+	static const char composite_delimeter_closed = '>';
+	static const std::regex whitespace_pattern = std::regex(R"(\s)");
 
-	auto command_and_opts = find_submatches(query, split_pattern, 1);
-	auto params = find_submatches(query, split_pattern, 2);
+	bool is_word = false;
+	auto pos = 0;
+	auto word_pos_begin = 0;
+	auto cd_count = 0;
 
-	if (!command_and_opts.empty()) {
-		args.push_back(command_and_opts[0]);
+	while (pos < query.size()) {
+		if (!is_word) {
+			while (
+				pos < query.size() && 
+				std::regex_match(std::string(1, query[pos]), whitespace_pattern)
+			) ++pos;
+
+			is_word = true;
+			word_pos_begin = pos;
+
+			continue;
+		}
+
+		if (std::regex_match(std::string(1, query[pos]), whitespace_pattern) && !cd_count) {
+			is_word = false;
+			args.push_back(query.substr(word_pos_begin, pos - word_pos_begin));
+		}
+
+		if (query[pos] == composite_delimeter_opened) {
+			cd_count++;
+		}
+
+		if (query[pos] == composite_delimeter_closed) {
+			cd_count--;
+		}
+
+		++pos;
 	}
 
-	if (!params.empty()) {
-		args.push_back(params[0]);
+	if (is_word) {
+		args.push_back(query.substr(word_pos_begin, pos - word_pos_begin));
 	}
 }
 
-void protocol_interpreter::extract_command(std::string& query, command_entity* command) {
-	static const std::regex split_pattern = std::regex(R"(\s*(\S+)\s*)");
-
-	if (query.empty()) {
+void protocol_interpreter::extract_command(query_arguments& args, command_entity* command) {
+	if (args.empty()) {
 		throw std::runtime_error("Недопустимый запрос!");
 	}
 
-	auto matches = find_submatches(query, split_pattern, 1);
-
-	if (!matches.empty()) {
-		command->command = find_submatches(query, split_pattern, 1)[0];
-	}
+	command->command = free_from_composite(args.front());
+	args.pop_front();
 }
 
-void protocol_interpreter::extract_options(std::string& query, command_entity* command) {
-	static const std::regex options_pattern = std::regex(R"(-(\S+))");
+void protocol_interpreter::extract_options(query_arguments& args, command_entity* command) {
+	static const std::regex options_pattern = std::regex(R"(^-(.*)$)");
 	
 	auto& options = command->options;
 
-	for (auto& opt : find_submatches(query, options_pattern, 1)) {
-		options.insert({ options.size(), opt });
+	bool is_continued = true;
+	do {
+		if (args.empty()) {
+			break;
+		}
+
+		auto& word = *args.begin();
+		auto matches = find_submatches(word, options_pattern, 1);
+
+		is_continued = !matches.empty();
+
+		if (is_continued) {
+			options.insert({ 
+				options.size(), 
+				free_from_composite(matches[0]) 
+			});
+
+			args.pop_front();
+		}
+
+	} while (is_continued);
+}
+
+void protocol_interpreter::extract_parameters(query_arguments& args, command_entity* command) {
+	auto& params = command->params;
+
+	for (auto& cur : args) {
+		auto& word = free_from_composite(cur);
+		params.push_back(word);
 	}
 }
 
-void protocol_interpreter::extract_parameters(std::string& query, command_entity* command) {
-	std::regex params_pattern = std::regex(R"(\".*?\"|\{.*\}|\[.*\])");
-	static const std::regex quotes_pattern = std::regex(R"(^\"(.*)\"$)");
+std::string& protocol_interpreter::free_from_composite(std::string& word) {
+	static const std::regex composite_pattern = std::regex(R"(<(.*)>)");
 
-	auto& params = command->params;
+	auto matches = find_submatches(word, composite_pattern, 1);
 
-	for (auto& param : find_submatches(query, params_pattern, 0)) {
-		auto quotes_cont = find_submatches(param, quotes_pattern, 1);
-
-		quotes_cont.empty() 
-			? params.push_back(param) 
-			: params.push_back(quotes_cont[0]);
+	if (!matches.empty()) {
+		word = matches[0];
 	}
+
+	return word;
 }
 
 std::vector<std::string> protocol_interpreter::find_submatches(

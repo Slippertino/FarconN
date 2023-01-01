@@ -10,11 +10,11 @@ bool client_networking::connect(const std::string& ipv4, uint16_t port) {
 	auto result = ::connect(socket, (sockaddr*)&addr, sizeof(addr));
 
 	if (result) {
-		LOG() << build_logging_prefix("ошибка") << BUILD_ERROR_MESSAGE("Неудачная попытка подключиться к серверу!") << "\n";
+		LOG(NETWORK) << build_logging_prefix("ошибка") << BUILD_ERROR_MESSAGE("Неудачная попытка подключиться к серверу!") << "\n";
 
 		event_invoke(error_occured)(const_cast<client_networking*>(this));
 	} else {
-		LOG() << build_logging_prefix("подключение к серверу завершено");
+		LOG(NETWORK) << build_logging_prefix("подключение к серверу завершено");
 
 		farconn::general::networking_storage::storage().add_socket(socket);
 	}

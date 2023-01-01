@@ -8,16 +8,24 @@ logger& logger::get_instance() {
 	return logger;
 }
 
-logger_stream&& logger::log() {
+logger_stream&& logger::log(const std::string& section) {
 	stream_locker.lock();
 
-	std::cout << build_prefix();
+	std::cout << build_prefix(section);
 
 	return logger_stream(stream_locker);
 }
 
-std::string logger::build_prefix() const {
-	return (std::ostringstream() << "[ " << get_time() << " ] ").str();
+std::string logger::build_prefix(const std::string& section) const {
+	auto prefix = std::ostringstream() << "[ " << get_time() << " ]";
+
+	if (!section.empty()) {
+		prefix << "[ " << section << " ]";
+	}
+
+	prefix << " ";
+
+	return prefix.str();
 }
 
 std::string logger::get_time() const {

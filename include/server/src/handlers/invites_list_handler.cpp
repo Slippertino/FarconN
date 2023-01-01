@@ -66,9 +66,9 @@ void invites_list_handler::execute() {
 		SERVER_ASSERT_EX(out, code != SUCCESS, code)
 	}
 
-	nlohmann::json js;
-	nlohmann::to_json(js, info);
-	out->params.push_back(js.dump());
+	out->params.push_back(
+		info.to_string()
+	);
 
 	SERVER_ASSERT_EX(out, true, SUCCESS)
 }

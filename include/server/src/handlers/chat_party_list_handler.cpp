@@ -35,9 +35,9 @@ void chat_party_list_handler::execute() {
 	ex_chat_party_info info;
 	SERVER_ASSERT(out, db->get_chat_party(selection, info) != SUCCESS)
 
-	nlohmann::json js;
-	nlohmann::to_json(js, info);
-	out->params.push_back(js.dump());
+	out->params.push_back(
+		info.to_string()
+	);
 
 	SERVER_ASSERT_EX(out, true, SUCCESS)
 }

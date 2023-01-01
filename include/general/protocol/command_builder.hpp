@@ -11,17 +11,19 @@ public:
 	command_builder() = default;
 	command_builder(const command_entity&);
 
-	command_builder& set_command(const std::string&);
+	command_builder& set_command(std::string);
 
-	command_builder& add_option(const std::string&);
+	command_builder& add_option(std::string);
 	void clear_options();
 
-	command_builder& add_parameter(const std::string&);
+	command_builder& add_parameter(std::string);
 	void clear_parameters();
 
 	void build(std::string&);
 
 private:
+	void try_to_wrap(std::string&);
+
 	void clear();
 
 private:

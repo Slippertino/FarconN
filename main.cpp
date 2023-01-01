@@ -22,7 +22,7 @@ int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
-	std::filesystem::create_directories(p);
+	/*std::filesystem::create_directories(p);
 
 
 
@@ -40,11 +40,12 @@ int main() {
 
 	of << "sdafsdfasdf";
 
-	of.close();
+	of.close();*/
 
-	std::string q = "chat_create -public \"24-24-asfs-324\" \"Мой чат\"";
-
-	auto res = protocol_interpreter::interpret(q);
+	std::string q = "chat_create -public 24-24-asfs-324 <Мой чат>";
+	std::string r = "login likromax qwerty123.";
+	std::string r1 = "chats_list -any 400 <Неверная команда!>";
+	auto res = protocol_interpreter::interpret(r1);
 	std::cout << query_ranking_estimator::estimate_query_ranking("slaip", "slippert") << std::endl;
 	/*farconn::server::user_profile p;
 

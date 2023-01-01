@@ -33,7 +33,7 @@ void db_responder::setup() {
 			}
 		}
 		catch (const sql::SQLException& ex) {
-			LOG() << "Database: " << ex.what() << " ; Code: " << ex.getErrorCode() << "\n";
+			LOG(DB) << ex.what() << " ; Code: " << ex.getErrorCode() << "\n";
 			throw ex;
 		}
 
@@ -74,13 +74,14 @@ server_status_code db_responder::signup_user(const std::string& login, const std
 			results->beforeFirst();
 			results->next();
 			while (!results->isAfterLast()) {
-				auto id = results->getString("id");
+				std::string id = results->getString("id");
+				utf8_encoder::from_utf8_to_local(id);
 				existing_tokens.insert(id);
 				results->next();
 			}
 		}
 		catch (const std::exception& ex) {
-			LOG() << ex.what() << "\n";
+			LOG(DB) << ex.what() << "\n";
 			free_query_components(comps);
 			return server_status_code::SYS__INTERNAL_SERVER_ERROR;
 		}
@@ -97,19 +98,19 @@ server_status_code db_responder::signup_user(const std::string& login, const std
 		auto count = comps.exec->executeUpdate(queries[0]);
 		code = server_status_code::SYS__OKEY;
 
-		LOG() << "Database: " << "Добавлен новый пользователь!\n";
+		LOG(DB) << "Добавлен новый пользователь!\n";
 	}
 	catch (const sql::SQLException& ex) {
 		code = (ex.getErrorCode() == 1062)
 			? server_status_code::SIGNUP__EXISTING_LOGIN_ERROR
 			: server_status_code::SYS__INTERNAL_SERVER_ERROR;
 
-		LOG() << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
+		LOG(DB) << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
 	}
 	catch (const std::exception& ex) {
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 	}
 
 	free_query_components(comps);
@@ -135,6 +136,7 @@ server_status_code db_responder::login_user(const std::string& login, const std:
 
 			if (count) {
 				token = results->getString("id");
+				utf8_encoder::from_utf8_to_local(token);
 				code = server_status_code::SYS__OKEY;
 			}
 			else {
@@ -146,7 +148,7 @@ server_status_code db_responder::login_user(const std::string& login, const std:
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -169,7 +171,7 @@ server_status_code db_responder::logout_user(const std::string& token) {
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -195,10 +197,11 @@ server_status_code db_responder::get_user_id_by_login(const std::string& login, 
 			results->beforeFirst();
 			results->next();
 			token = results->getString("id");
+			utf8_encoder::from_utf8_to_local(token);
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -242,7 +245,7 @@ server_status_code db_responder::get_users_relations(const std::string& login_us
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -267,9 +270,8 @@ server_status_code db_responder::get_user_profile_data(const std::string& login,
 			result->next();
 
 			for (auto& cur : data) {
-				std::string temp = result->getString(cur.second.name);
-				utf8_encoder::from_utf8_to_local(temp);
-				cur.second.value = temp;
+				cur.second.value = result->getString(cur.second.name);
+				utf8_encoder::from_utf8_to_local(cur.second.value.value());
 			}
 
 			code = server_status_code::SYS__OKEY;
@@ -279,7 +281,7 @@ server_status_code db_responder::get_user_profile_data(const std::string& login,
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -304,10 +306,10 @@ server_status_code db_responder::update_user_profile(const std::string& token, c
 			? server_status_code::SIGNUP__EXISTING_LOGIN_ERROR
 			: server_status_code::SYS__INTERNAL_SERVER_ERROR;
 
-		LOG() << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
+		LOG(DB) << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -332,7 +334,7 @@ server_status_code db_responder::check_request_existence(const std::string& lufr
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -357,10 +359,10 @@ server_status_code db_responder::create_request(const std::string& lufrom, const
 			? server_status_code::REQUEST__ALREADY_EXIST_ERROR
 			: server_status_code::SYS__INTERNAL_SERVER_ERROR;
 
-		LOG() << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
+		LOG(DB) << ex.what() << " ; Code : " << ex.getErrorCode() << "\n";
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -381,7 +383,7 @@ server_status_code db_responder::delete_request(const std::string& lufrom, const
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -409,7 +411,7 @@ server_status_code db_responder::check_contact_existence(const std::string& logi
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -430,7 +432,7 @@ server_status_code db_responder::create_contact(const std::string& lufrom, const
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -454,7 +456,7 @@ server_status_code db_responder::delete_contact(const std::string& login, const 
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -478,11 +480,15 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
-			auto id = res->getString("id");
-			auto login = res->getString("login");
-			auto name = res->getString("name");
+			std::string id = res->getString("id");
+			std::string login = res->getString("login");
+			std::string name = res->getString("name");
 
-			info[list_type].insert({ id, { id, login, name } });
+			utf8_encoder::from_utf8_to_local_list({
+				&id, &login, &name
+			});
+
+			info.data[list_type].insert({ id, { id, login, name } });
 
 			res->next();
 		}
@@ -490,7 +496,7 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -512,11 +518,15 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
-			auto id = res->getString("id");
-			auto login = res->getString("login");
-			auto name = res->getString("name");
+			std::string id = res->getString("id");
+			std::string login = res->getString("login");
+			std::string name = res->getString("name");
 
-			info.insert({ id, { id, login, name } });
+			utf8_encoder::from_utf8_to_local_list({
+				&id, &login, &name
+			});
+
+			info.data.insert({ id, { id, login, name } });
 
 			res->next();
 		}
@@ -524,7 +534,7 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -549,9 +559,13 @@ server_status_code db_responder::get_users_searching_list(const std::string& log
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
-			auto id = res->getString("id");
-			auto login = res->getString("login");
-			auto name = res->getString("name");
+			std::string id = res->getString("id");
+			std::string login = res->getString("login");
+			std::string name = res->getString("name");
+
+			utf8_encoder::from_utf8_to_local_list({
+				&id, &login, &name
+			});
 
 			info.push_back({ id, login, name });
 
@@ -561,7 +575,7 @@ server_status_code db_responder::get_users_searching_list(const std::string& log
 		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Database : " << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -582,12 +596,12 @@ server_status_code db_responder::create_chat(const chat_creation_params& params)
 
 		code = server_status_code::SYS__OKEY;
 
-		LOG() << "Database: " << "Добавлен новый чат!\n";
+		LOG(DB) << "Добавлен новый чат!\n";
 	}
 	catch (const std::exception& ex) {
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 	}
 
 	free_query_components(comps);
@@ -609,13 +623,14 @@ server_status_code db_responder::get_chats_tokens(std::unordered_set<std::string
 		results->beforeFirst();
 		results->next();
 		while (!results->isAfterLast()) {
-			auto id = results->getString("id");
+			std::string id = results->getString("id");
+			utf8_encoder::from_utf8_to_local(id);
 			tokens.insert(id);
 			results->next();
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -640,7 +655,7 @@ server_status_code db_responder::get_user_chats_count(const std::string& id, uin
 		count = results->getUInt("count");
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -667,7 +682,7 @@ server_status_code db_responder::add_user_to_chat(const std::string& chat_id, co
 	catch (const std::exception& ex) {
 		comps.connection->rollback();
 
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -704,13 +719,19 @@ server_status_code db_responder::get_chat_info(
 			info.type = results->getString("type");
 			info.title = results->getString("title");
 			info.size = results->getInt("size");
+
+			utf8_encoder::from_utf8_to_local_list({
+				&info.id,
+				&info.type,
+				&info.title
+			});
 		}
 		else {
 			code = server_status_code::CHAT__NONEXISTEN_CHAT_ERROR;
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -735,7 +756,7 @@ server_status_code db_responder::is_user_chat_participant(const std::string& use
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -769,7 +790,7 @@ server_status_code db_responder::exclude_user_from_chat(const std::string& user_
 	catch (const std::exception& ex) {
 		comps.connection->rollback();
 
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -794,13 +815,14 @@ server_status_code db_responder::get_messages_tokens(std::unordered_set<std::str
 		results->beforeFirst();
 		results->next();
 		while (!results->isAfterLast()) {
-			auto id = results->getString("id");
+			std::string id = results->getString("id");
+			utf8_encoder::from_utf8_to_local(id);
 			tokens.insert(id);
 			results->next();
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -824,7 +846,7 @@ server_status_code db_responder::post_message(const chat_post_params& params) {
 	catch (const std::exception& ex) {
 		comps.connection->rollback();
 
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -853,7 +875,7 @@ server_status_code db_responder::save_file(
 		output << content;
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Ошибка при попытке записи в файл: " << ex.what() << "\n";
+		LOG(DB) << "Ошибка при попытке записи в файл: " << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 	
@@ -887,13 +909,20 @@ server_status_code db_responder::get_messages_list(const chat_messages_selection
 			cur.type = results->getString("type");
 			cur.content = results->getString("content");
 
+			utf8_encoder::from_utf8_to_local_list({
+				&cur.id,
+				&cur.sender_name,
+				&cur.type,
+				&cur.content
+			});
+
 			info.push_back(cur);
 
 			results->next();
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -917,7 +946,8 @@ server_status_code db_responder::get_user_chats_tokens(const std::string& user_i
 		results->next();
 
 		while (!results->isAfterLast()) {
-			auto id = results->getString("id");
+			std::string id = results->getString("id");
+			utf8_encoder::from_utf8_to_local(id);
 
 			chats.push_back(id);
 
@@ -925,7 +955,7 @@ server_status_code db_responder::get_user_chats_tokens(const std::string& user_i
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
@@ -947,17 +977,21 @@ server_status_code db_responder::get_chat_party(const chat_party_selection& sele
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
-			auto id = res->getString("id");
-			auto login = res->getString("login");
-			auto name = res->getString("name");
+			std::string id = res->getString("id");
+			std::string login = res->getString("login");
+			std::string name = res->getString("name");
 
-			info.insert({ id, { id, login, name } });
+			utf8_encoder::from_utf8_to_local_list({
+				&id, &login, &name
+			});
+
+			info.data.insert({ id, { id, login, name } });
 
 			res->next();
 		}
 	}
 	catch (const std::exception& ex) {
-		LOG() << ex.what() << "\n";
+		LOG(DB) << ex.what() << "\n";
 		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 

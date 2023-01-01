@@ -46,20 +46,20 @@ void server::handle_command() {
 	auto socket_command = commands_to_handle.wait_and_erase();
 	utf8_encoder::from_utf8_to_local(socket_command.second);
 
-	LOG() << "Входящая команда: " << socket_command.second << "\n";
+	LOG(SERVER) << "Входящая команда: " << socket_command.second << "\n";
 
 	std::shared_ptr<command_entity> com;
 	auto resp = std::make_shared<command_response>();
 
 	try {
 		com = protocol_interpreter::interpret(socket_command.second);
-
-		repository.handle(com.get(), resp.get());
 		resp->command = com->command;
 		resp->options = com->options;
+
+		repository.handle(com.get(), resp.get());
 	}
 	catch (const std::exception& ex) {
-		LOG() << "Недопустимый ввод! " << ex.what() << "\n";
+		LOG(SERVER) << "Недопустимый ввод! " << ex.what() << "\n";
 		resp->status = status_code_interpreter::interpret(server_status_code::SYS__INVALID_COMMAND_ERROR);
 	}
 
@@ -71,7 +71,7 @@ void server::handle_command() {
 	std::string message_to_send;
 	builder.build(message_to_send);
 
-	LOG() << "В очередь на отправку: " << message_to_send << "\n";
+	LOG(SERVER) << "В очередь на отправку: " << message_to_send << "\n";
 
 	utf8_encoder::from_local_to_utf8(message_to_send);
 

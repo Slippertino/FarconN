@@ -47,7 +47,7 @@ void chat_messages_list_handler::execute() {
 	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 	for (auto& msg : messages) {
-		info.insert({
+		info.data.insert({
 			msg.id,
 			msg.to_external(
 				&chat_messages_list_handler::convert_seconds_to_date,
@@ -56,9 +56,9 @@ void chat_messages_list_handler::execute() {
 		});
 	}
 
-	nlohmann::json js;
-	nlohmann::to_json(js, info);
-	out->params.push_back(js.dump());
+	out->params.push_back(
+		info.to_string()
+	);
 
 	SERVER_ASSERT_EX(out, true, SUCCESS)
 }

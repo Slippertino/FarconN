@@ -9,6 +9,8 @@
 
 FARCONN_NAMESPACE_BEGIN(general)
 
+#undef ERROR
+
 template<class Derived>
 class client_networking_base : public multithread_context<Derived>,
 							   public networking {
@@ -26,7 +28,7 @@ public:
 
 	virtual ~client_networking_base() {
 		if (socket != INVALID_SOCKET) {
-			LOG() << build_logging_prefix("уничтожение...");
+			LOG(NETWORK) << build_logging_prefix("уничтожение...");
 			shutdown(socket, SD_BOTH);
 		}
 	}
@@ -53,7 +55,7 @@ protected:
 
 		try {
 			if (!is_connected()) {
-				LOG() << build_logging_prefix("клиент отключен");
+				LOG(NETWORK) << build_logging_prefix("клиент отключен");
 
 				cancellation_flag = true;
 
@@ -66,7 +68,7 @@ protected:
 				receive_message(msg);
 				networking_storage::storage().update();
 
-				LOG() << build_logging_prefix("получено сообщение");
+				LOG(NETWORK) << build_logging_prefix("получено сообщение");
 
 				event_invoke(message_received)(socket, msg);
 			}
@@ -77,7 +79,7 @@ protected:
 				messages_to_send_locker.lock();
 
 				if (!messages_to_send.empty()) {
-					LOG() << "ќтправл€ю...\n";
+					LOG(NETWORK) << "ќтправл€ю...\n";
 
 					msg = messages_to_send.front();
 					messages_to_send.pop();
@@ -87,7 +89,7 @@ protected:
 					send_message(msg);
 					networking_storage::storage().update();
 
-					LOG() << build_logging_prefix("отправлено сообщение");
+					LOG(NETWORK) << build_logging_prefix("отправлено сообщение");
 				}
 				else {
 					messages_to_send_locker.unlock();
@@ -95,7 +97,7 @@ protected:
 			}
 		}
 		catch (const std::runtime_error& error) {
-			LOG() << build_logging_prefix("ошибка") << error.what() << "\n";
+			LOG(NETWORK) << build_logging_prefix("ошибка") << error.what() << "\n";
 
 			cancellation_flag = true;
 

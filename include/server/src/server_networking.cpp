@@ -16,7 +16,7 @@ void server_networking::setup(const std::string& ipv4, uint16_t port) {
 		addr = create_sockaddr_in(ipv4, port);
 	}
 	catch (const std::exception& ex) {
-		LOG() << build_logging_prefix("ошибка") << BUILD_ERROR_MESSAGE(ex.what()) << "\n";
+		LOG(NETWORK) << build_logging_prefix("ошибка") << BUILD_ERROR_MESSAGE(ex.what()) << "\n";
 
 		event_invoke(error_occured)(const_cast<server_networking*>(this));
 
@@ -27,7 +27,7 @@ void server_networking::setup(const std::string& ipv4, uint16_t port) {
 
 	if (res) {
 
-		LOG() 
+		LOG(NETWORK)
 			<< build_logging_prefix("ошибка") 
 			<< BUILD_ERROR_MESSAGE("Ошибка при попытке привязки сокета к локальному адресу!") << "\n";
 
@@ -36,7 +36,7 @@ void server_networking::setup(const std::string& ipv4, uint16_t port) {
 		return;
 	}
 	else {
-		LOG() << build_logging_prefix("привязка сокета к локальному адресу удалась") << "\n";
+		LOG(NETWORK) << build_logging_prefix("привязка сокета к локальному адресу удалась") << "\n";
 	}
 
 	networking_storage::storage().add_socket(socket);
@@ -48,7 +48,7 @@ void server_networking::run() {
 	auto res = listen(socket, SOMAXCONN);
 
 	if (res) {
-		LOG()
+		LOG(NETWORK)
 			<< build_logging_prefix("ошибка")
 			<< BUILD_ERROR_MESSAGE("Ошибка при попытке сокета начать прослушивание входящих соединений!") << "\n";
 
@@ -57,7 +57,7 @@ void server_networking::run() {
 		return;
 	}
 	else {
-		LOG() << build_logging_prefix("начато прослушивание входящих соединений") << "\n";
+		LOG(NETWORK) << build_logging_prefix("начато прослушивание входящих соединений") << "\n";
 	}
 
 	cancellation_flag = false;
@@ -69,7 +69,7 @@ void server_networking::stop() {
 	multithread_context<server_networking>::stop();
 
 	if (socket != INVALID_SOCKET) {
-		LOG() << build_logging_prefix("остановка...") << "\n";
+		LOG(NETWORK) << build_logging_prefix("остановка...") << "\n";
 		shutdown(socket, SD_BOTH);
 	}
 }
@@ -85,15 +85,15 @@ void server_networking::working_context() {
 			auto client_sock = ::accept(socket, (sockaddr*)&client_info, &client_size);
 
 			if (client_sock != INVALID_SOCKET) {
-				LOG() << build_logging_prefix("новый клиент") << "Сокет: " << client_sock << "\n";
+				LOG(NETWORK) << build_logging_prefix("новый клиент") << "Сокет: " << client_sock << "\n";
 
 				event_invoke(connection_incoming)(client_sock);
 			} else {
-				LOG() << build_logging_prefix("неудачное подключение клиента") << "\n";
+				LOG(NETWORK) << build_logging_prefix("неудачное подключение клиента") << "\n";
 			}
 		}
 	} catch (const std::runtime_error& error) {
-		LOG() << build_logging_prefix("ошибка") << error.what() << "\n";
+		LOG(NETWORK) << build_logging_prefix("ошибка") << error.what() << "\n";
 
 		cancellation_flag = true;
 
@@ -105,7 +105,7 @@ server_networking::~server_networking() {
 	multithread_context<server_networking>::stop();
 
 	if (socket != INVALID_SOCKET) {
-		LOG() << build_logging_prefix("уничтожение...") << "\n";
+		LOG(NETWORK) << build_logging_prefix("уничтожение...") << "\n";
 		shutdown(socket, SD_BOTH);
 	}
 }
