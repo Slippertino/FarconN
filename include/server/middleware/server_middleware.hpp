@@ -41,10 +41,10 @@ class server_middleware {
 	DECLARE_HANDLER(chat_party_list_handler)
 
 public:
-	server_middleware() = delete;
-	server_middleware(const database_config&, std::string);
+	server_middleware() = default;
 
-	void setup();
+	void setup(const database_config&, std::string);
+	void refresh();
 
 	void handle(const command_entity*, command_response*);
 

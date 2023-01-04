@@ -24,7 +24,7 @@ const std::unordered_map<server_status_code, std::string> status_code_interprete
 	{ server_status_code::PROFILE__INVALID_DATA_TO_SET_ERROR,			"Данные профиля неверного формата!"										},
 
 	{ server_status_code::REQUEST__NONEXISTEN_REQUEST_ERROR,			"Несуществующая заявка!"												},
-	{ server_status_code::REQUEST__ALREADY_IN_CONTACTS_ERROR,			"Заявленный пользователь либо в ваших контактах, либо Вы!"				},
+	{ server_status_code::REQUEST__IMPOSSIBLE_TO_CREATE_ERROR,			"Заявленному пользователю невозможно отправить заявку!"					},
 	{ server_status_code::REQUEST__ALREADY_EXIST_ERROR,					"Заявка в контакты уже существует!"										},
 
 	{ server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR,			"Несуществующий контакт!"												},

@@ -16,11 +16,15 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 class server : public multithread_context<server> {
 public:
-	server() = delete;
-	server(const server_config&);
-	
+	server() = default;
+
+	void setup(const server_config&);
+
 	void run() override;
 	void stop() override;
+
+	bool is_run() const;
+	bool is_setup() const;
 
 	~server();
 
@@ -38,6 +42,9 @@ private:
 
 private:
 	static const size_t working_flows_count;
+
+	bool is_server_running = false;
+	bool is_server_setup = false;
 
 	thread_safe_queue<std::pair<SOCKET, std::string>> commands_to_handle;
 

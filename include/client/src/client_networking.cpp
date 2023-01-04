@@ -22,10 +22,4 @@ bool client_networking::connect(const std::string& ipv4, uint16_t port) {
 	return !result;
 }
 
-void client_networking::run() {
-	cancellation_flag = false;
-
-	run_context_loop(&client_networking::working_context, mt_sleep_time(1));
-}
-
 FARCONN_NAMESPACE_END

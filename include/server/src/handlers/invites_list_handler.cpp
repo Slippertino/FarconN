@@ -34,7 +34,7 @@ void invites_list_handler::execute() {
 	auto& params = in->params;
 
 	invites_selection selection;
-	selection.login = session->login;
+	selection.user_id = session->native_token;
 
 	ex_invitations_info info;
 	for (auto& opt : options) {

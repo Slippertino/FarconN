@@ -5,29 +5,47 @@ FARCONN_NAMESPACE_BEGIN(client)
 
 #undef ERROR
 
-client::client(const client_config& client_cfg) : config(client_cfg) {
-	is_connected = networking.connect(config.get_ip(), config.get_port());
+bool client::is_run() const {
+	return is_client_running;
+}
 
-	if (is_connected) {
+bool client::is_setup() const {
+	return is_client_setup;
+}
+
+void client::setup(const client_config& client_cfg) {
+	config = client_cfg;
+
+	is_client_setup = networking.connect(config.get_ip(), config.get_port());
+
+	if (is_client_setup) {
 		networking.error_occured    += event_create(const_cast<client*>(this), client::on_client_net_error_occured);
 		networking.message_received += event_create(const_cast<client*>(this), client::on_message_received);
 	}
 }
 
 void client::run() {
-	if (!is_connected) {
+	if (!is_client_setup || is_client_running) {
 		return;
 	}
 
 	multithread_context<client>::run();
 
 	networking.run();
+
+	is_client_running = true;
 }
 
 void client::stop() {
+	if (!is_client_setup || !is_client_running) {
+		return;
+	}
+
 	multithread_context<client>::stop();
 
 	networking.stop();
+
+	is_client_running = false;
 }
 
 void client::setup_contexts() {

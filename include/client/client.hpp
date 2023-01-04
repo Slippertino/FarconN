@@ -13,11 +13,16 @@ FARCONN_NAMESPACE_BEGIN(client)
 
 class client : public farconn::general::multithread_context<client> {
 public:
-	client() = delete;
-	client(const client_config&);
+	client() = default;
 
+	void setup(const client_config&);
 	void run() override;
 	void stop() override;
+
+	bool is_run() const;
+	bool is_setup() const;
+
+	~client() = default;
 
 protected:
 	void setup_contexts() override;
@@ -38,8 +43,10 @@ private:
 
 private:
 	static const std::unordered_map<std::string, std::function<void(const client*, command_entity*)>> command_handlers;
+	
+	bool is_client_running = false;
+	bool is_client_setup = false;
 
-	bool is_connected = false;
 	client_config config;
 	client_networking networking;
 };

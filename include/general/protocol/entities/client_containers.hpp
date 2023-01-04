@@ -37,12 +37,12 @@ struct ex_info {
 template<class T>
 using ex_selection			= std::unordered_map<std::string, T>;
 
-using ex_user_profile		= ex_info<ex_selection<std::string>>;
-using ex_invitations_info	= ex_info<ex_selection<ex_selection<ex_user_info>>>;
-using ex_contacts_info		= ex_info<ex_selection<ex_user_info>>;
-using ex_searching_results	= ex_info<std::unordered_map<size_t, ex_user_info>>;
-using ex_chat_messages_info = ex_info<ex_selection<ex_message_info>>;
-using ex_chats_info			= ex_info<ex_selection<ex_chat_info>>;
-using ex_chat_party_info	= ex_info<ex_selection<ex_user_info>>;
+using ex_user_profile		= ex_info<std::unordered_map<std::string, std::string>>;
+using ex_invitations_info	= ex_info<std::unordered_map<std::string, std::map<size_t, ex_user_info>>>;
+using ex_contacts_info		= ex_info<std::map<size_t, ex_user_info>>;
+using ex_searching_results	= ex_info<std::map<size_t, ex_user_info>>;
+using ex_chat_messages_info = ex_info<std::map<size_t, ex_message_info>>;
+using ex_chats_info			= ex_info<std::map<size_t, ex_chat_info>>;
+using ex_chat_party_info	= ex_info<std::map<size_t, ex_user_info>>;
 
 FARCONN_NAMESPACE_END

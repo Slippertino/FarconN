@@ -10,20 +10,38 @@ chats_list_handler::chats_list_handler(server_middleware* sm, const command_enti
 { }
 
 bool chats_list_handler::is_command_valid() {
-	return !in->options.size() && in->params.size() == 1;
+	return !in->options.size() && in->params.size() == 3;
 }
 
 void chats_list_handler::execute() {
-	auto& user_id = session->native_token;
+	auto& params = in->params;
+
+	chats_selection selection;
+	selection.user_id = session->native_token;
+
+	SERVER_ASSERT_EX(
+		out,
+		try_convert_to_offset(params[1], &selection) != SUCCESS,
+		server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR
+	)
+
+	SERVER_ASSERT_EX(
+		out,
+		try_convert_to_limit(params[2], &selection) != SUCCESS,
+		server_status_code::SYS__INVALID_LIMIT_VALUE_ERROR
+	)
+
 	server_status_code code;
 
-	std::vector<std::string> chats;
-	SERVER_ASSERT(out, db->get_user_chats_tokens(user_id, chats) != SUCCESS)
+	std::vector<std::string> chats_ids;
+	SERVER_ASSERT(out, db->get_user_chats_tokens(selection, chats_ids) != SUCCESS)
 
 	ex_chats_info result;
-	for (auto& id : chats) {
+	for (auto i = 0; i < chats_ids.size(); ++i) {
+		auto& id = chats_ids[i];
+
 		chat_info chat;
-		code = db->get_chat_info(user_id, id, chat);
+		code = db->get_chat_info(selection.user_id, id, chat);
 		SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
 		std::vector<message_info> last_message;
@@ -41,7 +59,7 @@ void chats_list_handler::execute() {
 		}
 
 		result.data.insert({ 
-			chat_info.id, 
+			i, 
 			std::move(chat_info) 
 		});
 	}

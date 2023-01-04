@@ -24,7 +24,14 @@ void signup_handler::execute() {
 
 	std::lock_guard<std::mutex> locker(main->users_locker);
 
-	SERVER_ASSERT_EX(out, true, db->signup_user(login, pass))
+	std::unordered_set<std::string> existing_tokens;
+	SERVER_ASSERT(out, db->get_users_tokens(existing_tokens) != SUCCESS)
+
+	auto user_id = token_generator::generate([&existing_tokens](const std::string& cur) {
+		return existing_tokens.find(cur) == existing_tokens.end();
+	});
+
+	SERVER_ASSERT_EX(out, true, db->signup_user(user_id, login, pass))
 }
 
 FARCONN_NAMESPACE_END

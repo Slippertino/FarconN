@@ -46,10 +46,10 @@ void chat_messages_list_handler::execute() {
 	code = db->get_messages_list(selection, messages);
 	SERVER_ASSERT_EX(out, code != SUCCESS, code)
 
-	for (auto& msg : messages) {
+	for(int i = messages.size() - 1; i >= 0; --i) {
 		info.data.insert({
-			msg.id,
-			msg.to_external(
+			info.data.size(),
+			messages[i].to_external(
 				&chat_messages_list_handler::convert_seconds_to_date,
 				time_template
 			)

@@ -28,7 +28,7 @@ void db_queries_generator::reset(std::ostringstream& ostr, std::vector<std::stri
 	ostr.str("");
 }
 
-std::vector<std::string> db_queries_generator::get_db_init_queries(std::string db_name) {
+std::vector<std::string> db_queries_generator::get_sys_db_init_queries(std::string db_name) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
@@ -61,18 +61,20 @@ std::vector<std::string> db_queries_generator::get_db_init_queries(std::string d
 		<< "if not exists " << contacts_name_tb << " ("
 		<< "u_from varchar(50),"
 		<< "u_to varchar(50),"
-		<< "primary key(u_from, u_to),"
-		<< "foreign key (u_from) references " << users_name_tb << "(login) on delete cascade on update cascade,"
-		<< "foreign key (u_to) references " << users_name_tb << "(login) on delete cascade on update cascade);";
+		<< "index u_from_index(u_from(50)),"
+		<< "index u_to_index(u_to(50)),"
+		<< "foreign key (u_from) references " << users_name_tb << "(id) on delete set null on update no action,"
+		<< "foreign key (u_to) references " << users_name_tb << "(id) on delete set null on update no action);";
 	reset(ostr, res);
 	
 	ostr << "create table "
 		<< "if not exists " << requests_name_tb << " ("
 		<< "u_from varchar(50),"
 		<< "u_to varchar(50),"
-		<< "primary key(u_from, u_to),"
-		<< "foreign key (u_from) references " << users_name_tb << "(login) on delete cascade on update cascade,"
-		<< "foreign key (u_to) references " << users_name_tb << "(login) on delete cascade on update cascade);";
+		<< "index u_from_index(u_from(50)),"
+		<< "index u_to_index(u_to(50)),"
+		<< "foreign key (u_from) references " << users_name_tb << "(id) on delete set null on update no action,"
+		<< "foreign key (u_to) references " << users_name_tb << "(id) on delete set null on update no action);";
 	reset(ostr, res);
 
 	ostr << "create table "
@@ -87,12 +89,13 @@ std::vector<std::string> db_queries_generator::get_db_init_queries(std::string d
 		<< "if not exists " << messages_name_tb << " ("
 		<< "id varchar(50) primary key,"
 		<< "chat_id varchar(50) not null,"
-		<< "sender_id varchar(50) not null,"
-		<< "time datetime not null,"
+		<< "sender_id varchar(50) null,"
+		<< "time datetime(3) not null,"
 		<< "type enum(" << Q("text") << "," << Q("file") << ") not null,"
 		<< "content text not null,"
+		<< "unique index message_index(chat_id(50), sender_id(50), time),"
 		<< "foreign key (chat_id) references " << chats_name_tb << "(id) on delete cascade on update no action,"
-		<< "foreign key (sender_id) references " << users_name_tb << "(id) on delete cascade on update no action);";
+		<< "foreign key (sender_id) references " << users_name_tb << "(id) on delete set null on update no action);";
 	reset(ostr, res);
 
 	ostr << "create table "
@@ -102,6 +105,17 @@ std::vector<std::string> db_queries_generator::get_db_init_queries(std::string d
 		<< "primary key(user_id, chat_id),"
 		<< "foreign key (user_id) references " << users_name_tb << "(id) on delete cascade on update no action,"
 		<< "foreign key (chat_id) references " << chats_name_tb << "(id) on delete cascade on update no action);";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_sys_logout_users_query() {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	ostr << "update " << users_name_tb << " "
+		<< "set online = false";
 	reset(ostr, res);
 
 	return res;
@@ -131,11 +145,11 @@ std::vector<std::string> db_queries_generator::get_user_id_by_login_query(std::s
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_users_searching_list_query(std::string login, std::vector<std::string> columns) {
+std::vector<std::string> db_queries_generator::get_users_searching_list_query(std::string user_id, std::vector<std::string> columns) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &login });
+	to_mysql_format({ &user_id });
 	for (auto& col : columns) {
 		to_mysql_format({ &col });
 	}
@@ -144,13 +158,13 @@ std::vector<std::string> db_queries_generator::get_users_searching_list_query(st
 	for (auto i = 1; i < columns.size(); ++i) {
 		ostr << "," << columns[i];
 	}
-	ostr << " from " << users_name_tb << " where login <> " << Q(login) << " and login not in (";
+	ostr << " from " << users_name_tb << " where id <> " << Q(user_id) << " and id not in (";
 
 	ostr 
-		<< "select u_from from " << contacts_name_tb << " where u_to = " << Q(login) << " union "
-		<< "select u_to from " << contacts_name_tb << " where u_from = " << Q(login) << " union "
-		<< "select u_from from " << requests_name_tb << " where u_to = " << Q(login) << " union "
-		<< "select u_to from " << requests_name_tb << " where u_from = " << Q(login) << ")";
+		<< "select u_from from " << contacts_name_tb << " where u_to = " << Q(user_id) << " union "
+		<< "select u_to from " << contacts_name_tb << " where u_from = " << Q(user_id) << " union "
+		<< "select u_from from " << requests_name_tb << " where u_to = " << Q(user_id) << " union "
+		<< "select u_to from " << requests_name_tb << " where u_from = " << Q(user_id) << ")";
 
 	reset(ostr, res);
 
@@ -202,33 +216,33 @@ std::vector<std::string> db_queries_generator::get_logout_user_query(std::string
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_users_relations_query(std::string lu1, std::string lu2) {
+std::vector<std::string> db_queries_generator::get_users_relations_query(std::string u1, std::string u2) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lu1, &lu2 });
+	to_mysql_format({ &u1, &u2 });
 
 	ostr << "select * from " << contacts_name_tb << " where "
-		<< "(u_from = " << Q(lu1) << " and u_to = " << Q(lu2) << ") or "
-		<< "(u_from = " << Q(lu2) << " and u_to = " << Q(lu1) << ");";
+		<< "(u_from = " << Q(u1) << " and u_to = " << Q(u2) << ") or "
+		<< "(u_from = " << Q(u2) << " and u_to = " << Q(u1) << ");";
 	reset(ostr, res);
 
 	ostr << "select * from " << requests_name_tb << " where "
-		<< "(u_from = " << Q(lu1) << " and u_to = " << Q(lu2) << ") or "
-		<< "(u_from = " << Q(lu2) << " and u_to = " << Q(lu1) << ");";
+		<< "(u_from = " << Q(u1) << " and u_to = " << Q(u2) << ") or "
+		<< "(u_from = " << Q(u2) << " and u_to = " << Q(u1) << ");";
 	reset(ostr, res);
 
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_user_profile_data_query(std::string login) {
+std::vector<std::string> db_queries_generator::get_user_profile_data_query(std::string id) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &login });
+	to_mysql_format({ &id });
 
 	ostr << "select * from " << users_name_tb << " where "
-		 << "login = " << Q(login) << ";";
+		 << "id = " << Q(id) << ";";
 	reset(ostr, res);
 
 	return res;
@@ -266,84 +280,83 @@ std::vector<std::string> db_queries_generator::get_user_profile_to_update_query(
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_check_request_existence_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_check_request_existence_query(std::string ufrom, std::string uto) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lufrom, &luto });
+	to_mysql_format({ &ufrom, &uto });
 
 	ostr << "select * from " << requests_name_tb << " where "
-		 << "u_from = " << Q(lufrom) << " and "
-		 << "u_to = " << Q(luto) << ";";
+		 << "u_from = " << Q(ufrom) << " and "
+		 << "u_to = " << Q(uto) << ";";
 	reset(ostr, res);
 
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_create_request_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_create_request_query(std::string ufrom, std::string uto) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lufrom, &luto });
+	to_mysql_format({ &ufrom, &uto });
 
 	ostr << "insert into " << requests_name_tb << "(u_from, u_to) values "
-		<< "( " << Q(lufrom) << "," << Q(luto) << ");";
+		<< "( " << Q(ufrom) << "," << Q(uto) << ");";
 	reset(ostr, res);
 
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_delete_request_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_delete_request_query(std::string ufrom, std::string uto) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lufrom, &luto });
+	to_mysql_format({ &ufrom, &uto });
 
 	ostr << "delete from " << requests_name_tb << " where "
-		 << "u_from = " << Q(lufrom) << " and "
-		 << "u_to = " << Q(luto) << ";";
+		 << "u_from = " << Q(ufrom) << " and "
+		 << "u_to = " << Q(uto) << ";";
 	reset(ostr, res);
 
 	return res;
 }
 
-
-std::vector<std::string> db_queries_generator::get_check_contact_existence_query(std::string login, std::string contact_login) {
+std::vector<std::string> db_queries_generator::get_check_contact_existence_query(std::string id, std::string contact_id) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &login, &contact_login });
+	to_mysql_format({ &id, &contact_id });
 
 	ostr << "select * from " << contacts_name_tb << " where "
-		<< "(u_from = " << Q(login) << " and " << "u_to = " << Q(contact_login) << ") or "
-		<< "(u_from = " << Q(contact_login) << " and " << "u_to = " << Q(login) << ");";
+		<< "(u_from = " << Q(id) << " and " << "u_to = " << Q(contact_id) << ") or "
+		<< "(u_from = " << Q(contact_id) << " and " << "u_to = " << Q(id) << ");";
 	reset(ostr, res);
 
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_create_contact_query(std::string lufrom, std::string luto) {
+std::vector<std::string> db_queries_generator::get_create_contact_query(std::string ufrom, std::string uto) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &lufrom, &luto });
+	to_mysql_format({ &ufrom, &uto });
 
 	ostr << "insert into " << contacts_name_tb << "(u_from, u_to) values "
-		<< "( " << Q(lufrom) << "," << Q(luto) << ");";
+		<< "( " << Q(ufrom) << "," << Q(uto) << ");";
 	reset(ostr, res);
 
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_delete_contact_query(std::string login, std::string contact_login) {
+std::vector<std::string> db_queries_generator::get_delete_contact_query(std::string id, std::string contact_id) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &login, &contact_login });
+	to_mysql_format({ &id, &contact_id });
 
 	ostr << "delete from " << contacts_name_tb << " where "
-		<< "(u_from = " << Q(login) << " and " << "u_to = " << Q(contact_login) << ") or "
-		<< "(u_from = " << Q(contact_login) << " and " << "u_to = " << Q(login) << ");";
+		<< "(u_from = " << Q(id) << " and " << "u_to = " << Q(contact_id) << ") or "
+		<< "(u_from = " << Q(contact_id) << " and " << "u_to = " << Q(id) << ");";
 
 	reset(ostr, res);
 
@@ -355,7 +368,7 @@ std::vector<std::string> db_queries_generator::get_invites_list_query(invites_se
 	std::ostringstream ostr;
 
 	to_mysql_format({ 
-		&selection.login, 
+		&selection.user_id, 
 		&selection.filtration_column_name, 
 		&selection.selection_column_name
 	});
@@ -364,8 +377,8 @@ std::vector<std::string> db_queries_generator::get_invites_list_query(invites_se
 		<< "select login, " << users_name_tb << ".name as name," << users_name_tb << ".id as id "
 		<< "from " << requests_name_tb << " "
 		<< "inner join " << users_name_tb << " on " 
-		<< users_name_tb << ".login " << " = " << requests_name_tb << "." << selection.selection_column_name << " "
-		<< "where " << selection.filtration_column_name << " = " << Q(selection.login) << " "
+		<< users_name_tb << ".id " << " = " << requests_name_tb << "." << selection.selection_column_name << " "
+		<< "where " << selection.filtration_column_name << " = " << Q(selection.user_id) << " "
 		<< "limit " << selection.offset << "," << selection.limit << ";";
 	reset(ostr, res);
 
@@ -376,15 +389,15 @@ std::vector<std::string> db_queries_generator::get_contacts_list_query(contacts_
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &selection.login });
+	to_mysql_format({ &selection.user_id });
 
 	ostr
 		<< "select id, login, name "
 		<< "from " << contacts_name_tb << " "
 		<< "inner join " << users_name_tb << " on "
-		<< users_name_tb << ".login " << " = " << contacts_name_tb << "." << "u_from" << " or " 
-		<< users_name_tb << ".login " << " = " << contacts_name_tb << "." << "u_to" << " "
-		<< "where login <> " << Q(selection.login) << " "
+		<< users_name_tb << ".id " << " = " << contacts_name_tb << "." << "u_from" << " or " 
+		<< users_name_tb << ".id " << " = " << contacts_name_tb << "." << "u_to" << " "
+		<< "where id <> " << Q(selection.user_id) << " "
 		<< "order by name asc" << " "
 		<< "limit " << selection.offset << "," << selection.limit << ";";
 	reset(ostr, res);
@@ -397,6 +410,24 @@ std::vector<std::string> db_queries_generator::get_chats_tokens_query() {
 	std::ostringstream ostr;
 
 	ostr << "select id from " << chats_name_tb << ";";
+	reset(ostr, res);
+
+	return res;
+}
+
+std::vector<std::string> db_queries_generator::get_check_private_chat_existance_query(std::string uid1, std::string uid2) {
+	std::vector<std::string> res;
+	std::ostringstream ostr;
+
+	to_mysql_format({ &uid1, &uid2 });
+
+	ostr << "select chat_id, count(user_id) as count "
+		<< "from " << users_in_chats_name_tb << " "
+		<< "inner join " << chats_name_tb << " on " << chats_name_tb << ".id = " << users_in_chats_name_tb << ".chat_id "
+		<< "where " << chats_name_tb << ".type = " << Q("private") << " and ("
+		<< "user_id = " << Q(uid1) << " or " << "user_id = " << Q(uid2) << ") "
+		<< "group by chat_id "
+		<< "having count(user_id) > 1";
 	reset(ostr, res);
 
 	return res;
@@ -613,15 +644,16 @@ std::vector<std::string> db_queries_generator::get_messages_list_query(chat_mess
 	return res;
 }
 
-std::vector<std::string> db_queries_generator::get_user_chats_tokens_query(std::string user_id) {
+std::vector<std::string> db_queries_generator::get_user_chats_tokens_query(chats_selection selection) {
 	std::vector<std::string> res;
 	std::ostringstream ostr;
 
-	to_mysql_format({ &user_id });
+	to_mysql_format({ &selection.user_id });
 
 	ostr << "select chat_id as id "
 		<< "from " << users_in_chats_name_tb << " "
-		<< "where user_id = " << Q(user_id);
+		<< "where user_id = " << Q(selection.user_id) << " "
+		<< "limit " << selection.offset << "," << selection.limit;
 	reset(ostr, res);
 
 	return res;
@@ -636,7 +668,8 @@ std::vector<std::string> db_queries_generator::get_chat_party_query(chat_party_s
 	ostr << "select id, login, name "
 		<< "from " << users_in_chats_name_tb << " "
 		<< "inner join " << users_name_tb << " on " << users_in_chats_name_tb << ".user_id = " << users_name_tb << ".id "
-		<< "where chat_id = " << Q(selection.chat_id) << " and user_id <> " << Q(selection.user_id);
+		<< "where chat_id = " << Q(selection.chat_id) << " and user_id <> " << Q(selection.user_id) << " "
+		<< "limit " << selection.offset << "," << selection.limit;
 	reset(ostr, res);
 
 	return res;

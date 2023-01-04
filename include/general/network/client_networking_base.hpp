@@ -45,7 +45,11 @@ protected:
 	bool is_connected() const {
 		int result = ::send(socket, nullptr, 0, 0);
 
-		return (WSAGetLastError() != WSAECONNRESET);
+		auto error = WSAGetLastError();
+
+		//LOG(DEBUG) << "Проверка подключения...!! Result : " << result << " ; Error : " << error << "\n";
+
+		return (error != WSAECONNRESET && error != WSAECONNABORTED);
 	}
 
 	void working_context() {

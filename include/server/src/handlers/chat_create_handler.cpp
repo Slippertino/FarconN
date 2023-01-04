@@ -46,22 +46,23 @@ void chat_create_handler::execute() {
 }
 
 void chat_create_handler::handle_private(chat_creation_params& params) {
-	auto& user_login = in->params[1];
+	auto& contact_id = in->params[1];
 
 	params.size = 2;
 
 	users_relations_type rels;
-	std::string user_id;
-
-	SERVER_ASSERT(out, db->get_users_relations(session->login, user_login, rels) != SUCCESS)
+	SERVER_ASSERT(out, db->get_users_relations(session->native_token, contact_id, rels) != SUCCESS)
 	SERVER_ASSERT_EX(out, rels != users_relations_type::CONTACTS, server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR)
-	SERVER_ASSERT(out, db->get_user_id_by_login(user_login, user_id) != SUCCESS)
+
+	bool is_exist;
+	SERVER_ASSERT(out, db->check_private_chat_existance(session->native_token, contact_id, is_exist) != SUCCESS)
+	SERVER_ASSERT_EX(out, is_exist, server_status_code::CHAT__USER_ALREADY_IN_CHAT)
 
 	uint32_t chats_count;
-	SERVER_ASSERT(out, db->get_user_chats_count(user_id, chats_count) != SUCCESS)
+	SERVER_ASSERT(out, db->get_user_chats_count(contact_id, chats_count) != SUCCESS)
 	SERVER_ASSERT_EX(out, chats_count == max_chats_count_to_join, server_status_code::CHAT__JOINED_CHATS_LIMIT_EXCEEDED_ERROR)
 
-	params.default_users_ids.push_back(user_id);
+	params.default_users_ids.push_back(contact_id);
 
 	SERVER_ASSERT_EX(out, true, db->create_chat(params))
 }

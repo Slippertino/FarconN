@@ -28,7 +28,8 @@ void chat_post_handler::post_text_message(chat_post_params& params) {
 	params.content = in->params[2];
 
 	SERVER_ASSERT_EX(out, params.content.size() > max_text_message_size, server_status_code::CHAT__TEXT_MESSAGE_TOO_LARGE)
-	SERVER_ASSERT_EX(out, true, db->post_message(params))
+
+	post_message(params);
 }
 
 void chat_post_handler::post_file_message(chat_post_params& params) {
@@ -42,7 +43,17 @@ void chat_post_handler::post_file_message(chat_post_params& params) {
 
 	params.content = file_name;
 
-	SERVER_ASSERT_EX(out, true, db->post_message(params))
+	post_message(params);
+}
+
+void chat_post_handler::post_message(chat_post_params& params) {
+	auto result = db->post_message(params);
+
+	SERVER_ASSERT(out, result != SUCCESS, result)
+
+	out->params.push_back(params.id);
+
+	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 
 void chat_post_handler::execute() {

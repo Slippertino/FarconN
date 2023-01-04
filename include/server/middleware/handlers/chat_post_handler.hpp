@@ -13,6 +13,7 @@ protected:
 	void execute() override final;
 
 private:
+	void post_message(chat_post_params&);
 	void post_text_message(chat_post_params&);
 	void post_file_message(chat_post_params&);
 

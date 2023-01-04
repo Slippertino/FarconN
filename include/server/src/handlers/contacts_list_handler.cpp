@@ -17,7 +17,7 @@ void contacts_list_handler::execute() {
 	auto& params = in->params;
 
 	contacts_selection selection;
-	selection.login = session->login;
+	selection.user_id = session->native_token;
 
 	ex_contacts_info info;
 

@@ -28,7 +28,7 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 	searching.results.clear();
 
 	std::list<user_info> info;
-	auto code = db->get_users_searching_list(session->login, info);
+	auto code = db->get_users_searching_list(session->native_token, info);
 
 	if (code != SUCCESS) {
 		return code;
@@ -41,16 +41,16 @@ server_status_code search_handler::update_searching_cache(const std::string& que
 			query_ranking_estimator::estimate_query_ranking(usr.name, query)
 		);
 
-		info_relevance.insert({ usr.login, rel });
+		info_relevance.insert({ usr.id, rel });
 	}
 
 	auto it = std::remove_if(info.begin(), info.end(), [&](auto& usr) {
-		return info_relevance[usr.login] < min_relevance_value;
+		return info_relevance[usr.id] < min_relevance_value;
 	});
 
 	info.erase(it, info.end());
 	info.sort([&](const auto& usr1, const auto& usr2) {
-		return info_relevance[usr1.login] > info_relevance[usr2.login];
+		return info_relevance[usr1.id] > info_relevance[usr2.id];
 	});
 
 	auto i = 0;

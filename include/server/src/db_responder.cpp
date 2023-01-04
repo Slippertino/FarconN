@@ -4,12 +4,10 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 const size_t db_responder::connections_count = 1;
 
-db_responder::db_responder(const database_config& db_config, std::string files_storage_path) : 
-	config(db_config), 
-	files_storage_path(files_storage_path) 
-{ }
+void db_responder::setup(const database_config& db_config, std::string files_storage_path) {
+	this->config = db_config;
+	this->files_storage_path = files_storage_path;
 
-void db_responder::setup() {
 	if (!connections.empty()) {
 		return;
 	}
@@ -25,19 +23,18 @@ void db_responder::setup() {
 
 		auto exec = std::unique_ptr<sql::Statement>(con->createStatement());
 
-		auto queries = db_queries_generator::get_db_init_queries(config.database_name);
+		auto queries = db_queries_generator::get_sys_db_init_queries(config.database_name);
 
 		try {
 			for (auto& cur : queries) {
 				exec->execute(cur);
 			}
+
 		}
 		catch (const sql::SQLException& ex) {
 			LOG(DB) << ex.what() << " ; Code: " << ex.getErrorCode() << "\n";
 			throw ex;
 		}
-
-		exec->close();
 	}
 
 	for (auto i = 0; i < connections_count; ++i) {
@@ -57,48 +54,71 @@ void db_responder::setup() {
 	fs::create_directories(files_storage_path);
 }
 
-server_status_code db_responder::signup_user(const std::string& login, const std::string& password) {
+server_status_code db_responder::sys_logout_users() {
 	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_sys_logout_users_query();
 
-	std::string user_token;
-	std::vector<std::string> queries;
-	{
-		queries = db_queries_generator::get_users_tokens_query();
-		std::unordered_set<std::string> existing_tokens;
+	auto code = server_status_code::SYS__OKEY;
 
-		try {
-			auto results = std::unique_ptr<sql::ResultSet>(
-				comps.exec->executeQuery(queries[0])
-			);
-
-			results->beforeFirst();
-			results->next();
-			while (!results->isAfterLast()) {
-				std::string id = results->getString("id");
-				utf8_encoder::from_utf8_to_local(id);
-				existing_tokens.insert(id);
-				results->next();
-			}
-		}
-		catch (const std::exception& ex) {
-			LOG(DB) << ex.what() << "\n";
-			free_query_components(comps);
-			return server_status_code::SYS__INTERNAL_SERVER_ERROR;
-		}
-
-		user_token = token_generator::generate([&existing_tokens](const std::string& cur) {
-			return existing_tokens.find(cur) == existing_tokens.end();
-		});
+	try {
+		comps.exec->executeUpdate(queries[0]);
+	}
+	catch (const std::exception& ex) {
+		LOG(DB) << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
 	}
 
-	server_status_code code;
-	queries = db_queries_generator::get_add_user_query(user_token, login, password);
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::get_users_tokens(std::unordered_set<std::string>& tokens) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_users_tokens_query();
+	std::string user_token;
+	
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		results->beforeFirst();
+		results->next();
+		while (!results->isAfterLast()) {
+			std::string id = results->getString("id");
+			utf8_encoder::from_utf8_to_local(id);
+			tokens.insert(id);
+			results->next();
+		}
+	}
+	catch (const std::exception& ex) {
+		LOG(DB) << ex.what() << "\n";
+		free_query_components(comps);
+		return server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::signup_user(
+	const std::string& id,
+	const std::string& login, 
+	const std::string& password
+) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_add_user_query(id, login, password);
+	
+	auto code = server_status_code::SYS__OKEY;
 	
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
-		code = server_status_code::SYS__OKEY;
 
-		LOG(DB) << "Добавлен новый пользователь!\n";
+		LOG(DB) << "Добавлен новый пользователь: " << login << "\n";
 	}
 	catch (const sql::SQLException& ex) {
 		code = (ex.getErrorCode() == 1062)
@@ -122,7 +142,7 @@ server_status_code db_responder::login_user(const std::string& login, const std:
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_login_user_queries(login, password);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto results = std::unique_ptr<sql::ResultSet>(
@@ -137,7 +157,6 @@ server_status_code db_responder::login_user(const std::string& login, const std:
 			if (count) {
 				token = results->getString("id");
 				utf8_encoder::from_utf8_to_local(token);
-				code = server_status_code::SYS__OKEY;
 			}
 			else {
 				code = server_status_code::LOGIN__ALREADY_LOGGED_IN_ERROR;
@@ -184,7 +203,7 @@ server_status_code db_responder::get_user_id_by_login(const std::string& login, 
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_user_id_by_login_query(login);
 
-	server_status_code code = server_status_code::SYS__OKEY;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto results = std::unique_ptr<sql::ResultSet>(
@@ -210,16 +229,16 @@ server_status_code db_responder::get_user_id_by_login(const std::string& login, 
 	return code;
 }
 
-server_status_code db_responder::get_users_relations(const std::string& login_user1, const std::string& login_user2, users_relations_type& rels) {
-	if (login_user1 == login_user2) {
+server_status_code db_responder::get_users_relations(const std::string& user1_id, const std::string& user2_id, users_relations_type& rels) {
+	if (user1_id == user2_id) {
 		rels = users_relations_type::SELF;
 		return server_status_code::SYS__OKEY;
 	}
 
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_users_relations_query(
-		login_user1,
-		login_user2
+		user1_id,
+		user2_id
 	);
 
 	auto check_for_relation = [&](users_relations_type type, size_t query_id) {
@@ -236,13 +255,11 @@ server_status_code db_responder::get_users_relations(const std::string& login_us
 
 	rels = users_relations_type::NONE;
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		check_for_relation(users_relations_type::CONTACTS, 0);
 		check_for_relation(users_relations_type::REQUESTS, 1);
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -254,11 +271,11 @@ server_status_code db_responder::get_users_relations(const std::string& login_us
 	return code;
 }
 
-server_status_code db_responder::get_user_profile_data(const std::string& login, user_profile& data) {
+server_status_code db_responder::get_user_profile_data(const std::string& id, user_profile& data) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_user_profile_data_query(login);
+	auto queries = db_queries_generator::get_user_profile_data_query(id);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto result = std::unique_ptr<sql::ResultSet>(
@@ -273,8 +290,6 @@ server_status_code db_responder::get_user_profile_data(const std::string& login,
 				cur.second.value = result->getString(cur.second.name);
 				utf8_encoder::from_utf8_to_local(cur.second.value.value());
 			}
-
-			code = server_status_code::SYS__OKEY;
 		} 
 		else {
 			code = server_status_code::SYS__NONEXISTEN_USER_ERROR;
@@ -294,12 +309,10 @@ server_status_code db_responder::update_user_profile(const std::string& token, c
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_user_profile_to_update_query(token, profile);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const sql::SQLException& ex) {
 		code = (ex.getErrorCode() == 1062)
@@ -318,11 +331,11 @@ server_status_code db_responder::update_user_profile(const std::string& token, c
 	return code;
 }
 
-server_status_code db_responder::check_request_existence(const std::string& lufrom, const std::string& luto, bool& res) {
+server_status_code db_responder::check_request_existence(const std::string& ufrom, const std::string& uto, bool& res) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_check_request_existence_query(lufrom, luto);
+	auto queries = db_queries_generator::get_check_request_existence_query(ufrom, uto);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto result = std::unique_ptr<sql::ResultSet>(
@@ -330,8 +343,6 @@ server_status_code db_responder::check_request_existence(const std::string& lufr
 		);
 
 		res = result->rowsCount();
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -343,16 +354,14 @@ server_status_code db_responder::check_request_existence(const std::string& lufr
 	return code;
 }
 
-server_status_code db_responder::create_request(const std::string& lufrom, const std::string& luto) {
+server_status_code db_responder::create_request(const std::string& ufrom, const std::string& uto) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_create_request_query(lufrom, luto);
+	auto queries = db_queries_generator::get_create_request_query(ufrom, uto);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const sql::SQLException& ex) {
 		code = (ex.getErrorCode() == 1062)
@@ -371,16 +380,14 @@ server_status_code db_responder::create_request(const std::string& lufrom, const
 	return code;
 }
 
-server_status_code db_responder::delete_request(const std::string& lufrom, const std::string& luto) {
+server_status_code db_responder::delete_request(const std::string& ufrom, const std::string& uto) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_delete_request_query(lufrom, luto);
+	auto queries = db_queries_generator::get_delete_request_query(ufrom, uto);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -392,14 +399,14 @@ server_status_code db_responder::delete_request(const std::string& lufrom, const
 	return code;
 }
 
-server_status_code db_responder::check_contact_existence(const std::string& login, const std::string& contact_login, bool& res) {
+server_status_code db_responder::check_contact_existence(const std::string& id, const std::string& contact_id, bool& res) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_check_contact_existence_query(
-		login,
-		contact_login
+		id,
+		contact_id
 	);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto result = std::unique_ptr<sql::ResultSet>(
@@ -407,8 +414,6 @@ server_status_code db_responder::check_contact_existence(const std::string& logi
 		);
 
 		res = result->rowsCount();
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -420,16 +425,14 @@ server_status_code db_responder::check_contact_existence(const std::string& logi
 	return code;
 }
 
-server_status_code db_responder::create_contact(const std::string& lufrom, const std::string& luto) {
+server_status_code db_responder::create_contact(const std::string& ufrom, const std::string& uto) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_create_contact_query(lufrom, luto);
+	auto queries = db_queries_generator::get_create_contact_query(ufrom, uto);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -441,19 +444,17 @@ server_status_code db_responder::create_contact(const std::string& lufrom, const
 	return code;
 }
 
-server_status_code db_responder::delete_contact(const std::string& login, const std::string& contact_login) {
+server_status_code db_responder::delete_contact(const std::string& id, const std::string& contact_id) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_delete_contact_query(
-		login,
-		contact_login
+		id,
+		contact_id
 	);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto count = comps.exec->executeUpdate(queries[0]);
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -471,12 +472,14 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 
 	auto& list_type = selection.invitation_type_name;
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto res = std::unique_ptr<sql::ResultSet>(
 			comps.exec->executeQuery(queries[0])
 		);
+
+		auto& data = info.data[list_type];
 
 		res->beforeFirst(); res->next();
 		while (!res->isAfterLast()) {
@@ -488,12 +491,13 @@ server_status_code db_responder::get_invites_list(const invites_selection& selec
 				&id, &login, &name
 			});
 
-			info.data[list_type].insert({ id, { id, login, name } });
+			data.insert({ 
+				data.size(), 
+				{ id, login, name } 
+			});
 
 			res->next();
 		}
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -509,7 +513,7 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_contacts_list_query(selection);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto res = std::unique_ptr<sql::ResultSet>(
@@ -526,12 +530,13 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 				&id, &login, &name
 			});
 
-			info.data.insert({ id, { id, login, name } });
+			info.data.insert({ 
+				info.data.size(), 
+				{ id, login, name } 
+			});
 
 			res->next();
 		}
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -543,14 +548,14 @@ server_status_code db_responder::get_contacts_list(const contacts_selection& sel
 	return code;
 }
 
-server_status_code db_responder::get_users_searching_list(const std::string& login, std::list<user_info>& info) {
+server_status_code db_responder::get_users_searching_list(const std::string& user_id, std::list<user_info>& info) {
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_users_searching_list_query(
-		login, 
+		user_id, 
 		{"id", "login", "name"}
 	);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 
 	try {
 		auto res = std::unique_ptr<sql::ResultSet>(
@@ -571,8 +576,6 @@ server_status_code db_responder::get_users_searching_list(const std::string& log
 
 			res->next();
 		}
-
-		code = server_status_code::SYS__OKEY;
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -588,13 +591,11 @@ server_status_code db_responder::create_chat(const chat_creation_params& params)
 	auto comps = create_query_components();
 	auto queries = db_queries_generator::get_chat_creation_query(params);
 
-	server_status_code code;
+	auto code = server_status_code::SYS__OKEY;
 	
 	try {
 		comps.exec->executeUpdate(queries[0]);
 		comps.exec->executeUpdate(queries[1]);
-
-		code = server_status_code::SYS__OKEY;
 
 		LOG(DB) << "Добавлен новый чат!\n";
 	}
@@ -628,6 +629,29 @@ server_status_code db_responder::get_chats_tokens(std::unordered_set<std::string
 			tokens.insert(id);
 			results->next();
 		}
+	}
+	catch (const std::exception& ex) {
+		LOG(DB) << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
+
+	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::check_private_chat_existance(const std::string& uid1, const std::string& uid2, bool& res) {
+	auto comps = create_query_components();
+	auto queries = db_queries_generator::get_check_private_chat_existance_query(uid1, uid2);
+
+	auto code = server_status_code::SYS__OKEY;
+
+	try {
+		auto results = std::unique_ptr<sql::ResultSet>(
+			comps.exec->executeQuery(queries[0])
+		);
+
+		res = results->rowsCount();
 	}
 	catch (const std::exception& ex) {
 		LOG(DB) << ex.what() << "\n";
@@ -931,9 +955,9 @@ server_status_code db_responder::get_messages_list(const chat_messages_selection
 	return code;
 }
 
-server_status_code db_responder::get_user_chats_tokens(const std::string& user_id, std::vector<std::string>& chats) {
+server_status_code db_responder::get_user_chats_tokens(const chats_selection& selection, std::vector<std::string>& chats) {
 	auto comps = create_query_components();
-	auto queries = db_queries_generator::get_user_chats_tokens_query(user_id);
+	auto queries = db_queries_generator::get_user_chats_tokens_query(selection);
 
 	auto code = server_status_code::SYS__OKEY;
 
@@ -985,7 +1009,10 @@ server_status_code db_responder::get_chat_party(const chat_party_selection& sele
 				&id, &login, &name
 			});
 
-			info.data.insert({ id, { id, login, name } });
+			info.data.insert({ 
+				info.data.size(), 
+				{ id, login, name }
+			});
 
 			res->next();
 		}

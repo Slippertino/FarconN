@@ -23,12 +23,14 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 class db_responder {
 public:
-	db_responder() = delete;
-	db_responder(const database_config&, std::string);
+	db_responder() = default;
 
-	void setup();
+	void setup(const database_config&, std::string);
 
-	server_status_code signup_user(const std::string&, const std::string&);
+	server_status_code sys_logout_users();
+
+	server_status_code get_users_tokens(std::unordered_set<std::string>&);
+	server_status_code signup_user(const std::string&, const std::string&, const std::string&);
 
 	server_status_code login_user(const std::string&, const std::string&, std::string&);
 	server_status_code logout_user(const std::string&);
@@ -54,6 +56,7 @@ public:
 	server_status_code get_users_searching_list(const std::string&, std::list<user_info>&);
 	
 	server_status_code get_chats_tokens(std::unordered_set<std::string>&);
+	server_status_code check_private_chat_existance(const std::string&, const std::string&, bool&);
 	server_status_code create_chat(const chat_creation_params&);
 
 	server_status_code get_user_chats_count(const std::string&, uint32_t&);
@@ -69,7 +72,7 @@ public:
 	server_status_code save_file(const std::string&, const std::string&, const std::string&);
 
 	server_status_code get_messages_list(const chat_messages_selection&, std::vector<message_info>&);
-	server_status_code get_user_chats_tokens(const std::string&, std::vector<std::string>&);
+	server_status_code get_user_chats_tokens(const chats_selection&, std::vector<std::string>&);
 
 	server_status_code get_chat_party(const chat_party_selection&, ex_chat_party_info&);
 

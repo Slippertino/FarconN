@@ -53,6 +53,34 @@ struct encoder<std::unordered_map<TKey, TValue>> {
 	}
 };
 
+template<class TKey, class TValue>
+struct encoder<std::map<TKey, TValue>> {
+	void encode(std::map<TKey, TValue>& obj, const encoding_func_t& func) {
+		std::vector<std::pair<TKey, TValue>> temp;
+
+		std::transform(
+			std::move_iterator(obj.begin()),
+			std::move_iterator(obj.end()),
+			std::back_inserter(temp),
+			[](auto&& val) { return val; }
+		);
+
+		obj.clear();
+
+		for (auto& cur : temp) {
+			encoder<TKey>().encode(cur.first, func);
+			encoder<TValue>().encode(cur.second, func);
+		}
+
+		std::transform(
+			std::move_iterator(temp.begin()),
+			std::move_iterator(temp.end()),
+			std::inserter(obj, obj.begin()),
+			[](auto&& val) { return val; }
+		);
+	}
+};
+
 template<>
 struct encoder<ex_message_info> {
 	void encode(ex_message_info& obj, const encoding_func_t& func) {

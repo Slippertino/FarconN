@@ -15,7 +15,7 @@ bool chat_add_handler::is_command_valid() {
 
 void chat_add_handler::execute() {
 	auto& chat_id = in->params[1];
-	auto& user_login = in->params[2];
+	auto& user_id = in->params[2];
 
 	auto is_part = db->is_user_chat_participant(session->native_token, chat_id);
 	SERVER_ASSERT_EX(out, is_part != SUCCESS, is_part)
@@ -34,11 +34,8 @@ void chat_add_handler::execute() {
 	)
 
 	users_relations_type rels;
-	SERVER_ASSERT(out, db->get_users_relations(session->login, user_login, rels) != SUCCESS)
+	SERVER_ASSERT(out, db->get_users_relations(session->native_token, user_id, rels) != SUCCESS)
 	SERVER_ASSERT_EX(out, rels != users_relations_type::CONTACTS, server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR)
-
-	std::string user_id;
-	SERVER_ASSERT(out, db->get_user_id_by_login(user_login, user_id) != SUCCESS)
 
 	is_part = db->is_user_chat_participant(user_id, chat_id);
 	SERVER_ASSERT_EX(out, is_part == SUCCESS, server_status_code::CHAT__USER_ALREADY_IN_CHAT)

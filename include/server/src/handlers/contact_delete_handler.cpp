@@ -16,12 +16,12 @@ bool contact_delete_handler::is_command_valid() {
 void contact_delete_handler::execute() {
 	bool is_contact_exist;
 	
-	auto& login = session->login;
-	auto& contact_login = in->params[1];
+	auto& id = session->native_token;
+	auto& contact_id = in->params[1];
 
-	SERVER_ASSERT(out, db->check_contact_existence(login, contact_login, is_contact_exist) != SUCCESS)
+	SERVER_ASSERT(out, db->check_contact_existence(id, contact_id, is_contact_exist) != SUCCESS)
 	SERVER_ASSERT_EX(out, !is_contact_exist, server_status_code::CONTACT__NONEXISTEN_CONTACT_ERROR)
-	SERVER_ASSERT(out, db->delete_contact(login, contact_login) != SUCCESS)
+	SERVER_ASSERT(out, db->delete_contact(id, contact_id) != SUCCESS)
 	SERVER_ASSERT_EX(out, true, SUCCESS)
 }
 

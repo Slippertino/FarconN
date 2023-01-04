@@ -42,7 +42,9 @@ void server_networking::setup(const std::string& ipv4, uint16_t port) {
 	networking_storage::storage().add_socket(socket);
 }
 
-void server_networking::setup_contexts() { }
+void server_networking::setup_contexts() {
+	add_context(&server_networking::working_context, mt_sleep_time(1));
+}
 
 void server_networking::run() {
 	auto res = listen(socket, SOMAXCONN);
@@ -62,7 +64,8 @@ void server_networking::run() {
 
 	cancellation_flag = false;
 
-	run_context_loop(&server_networking::working_context, mt_sleep_time(1));
+	multithread_context<server_networking>::run();
+	//run_context_loop(&server_networking::working_context, mt_sleep_time(1));
 }
 
 void server_networking::stop() {

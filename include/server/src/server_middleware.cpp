@@ -4,12 +4,12 @@ using namespace farconn::general;
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-server_middleware::server_middleware(const database_config& db_config, std::string files_storage_path) :
-	database(db_config, files_storage_path) 
-{ }
+void server_middleware::setup(const database_config& db_config, std::string files_storage_path) {
+	database.setup(db_config, files_storage_path);
+}
 
-void server_middleware::setup() {
-	database.setup();
+void server_middleware::refresh() {
+	database.sys_logout_users();
 }
 
 void server_middleware::handle(const command_entity* in, command_response* out) {

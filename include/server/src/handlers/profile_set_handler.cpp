@@ -14,7 +14,7 @@ bool profile_set_handler::is_command_valid() {
 	bool result = (options.size() + 1) == in->params.size();
 
 	for (auto& opt : options) {
-		result &= profile_fields.find(opt.second) == profile_fields.end();
+		result &= profile_fields.find(opt.second) != profile_fields.end();
 
 		if (!result) {
 			break;

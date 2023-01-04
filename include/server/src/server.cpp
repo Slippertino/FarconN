@@ -4,16 +4,29 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 const size_t server::working_flows_count = 1;
 
-server::server(const server_config& config) : 
-	repository(config.get_db_config(), config.get_files_storage_path()) {
+bool server::is_run() const {
+	return is_server_running;
+}
+
+bool server::is_setup() const {
+	return is_server_setup;
+}
+
+void server::setup(const server_config& config) {
+	if (is_server_setup) {
+		return;
+	}
+
 	networking_storage::storage();
 
-	repository.setup();
+	repository.setup(config.get_db_config(), config.get_files_storage_path());
 
 	networking.connection_incoming += event_create(const_cast<server*>(this), server::on_connection_incoming);
-	networking.error_occured	   += event_create(const_cast<server*>(this), server::on_server_net_error_occured);
+	networking.error_occured += event_create(const_cast<server*>(this), server::on_server_net_error_occured);
 
 	networking.setup(config.get_ip(), config.get_port());
+
+	is_server_setup = true;
 }
 
 void server::setup_contexts() {
@@ -23,15 +36,29 @@ void server::setup_contexts() {
 }
 
 void server::run() {
+	if (!is_server_setup || is_server_running) {
+		return;
+	}
+
 	multithread_context<server>::run();
 
 	networking.run();
+
+	is_server_running = true;
 }
 
 void server::stop() {
+	if (!is_server_setup || !is_server_running) {
+		return;
+	}
+
 	multithread_context<server>::stop();
 
 	networking.stop();
+
+	repository.refresh();
+
+	is_server_running = false;
 }
 
 server::~server() {

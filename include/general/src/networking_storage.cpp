@@ -11,6 +11,9 @@ networking_storage& networking_storage::storage() {
 }
 
 networking_storage::networking_storage() {
+	SetConsoleOutputCP(1251);
+	SetConsoleCP(1251);
+
 	WSADATA wsData;
 	auto erState = WSAStartup(MAKEWORD(2, 2), &wsData);
 

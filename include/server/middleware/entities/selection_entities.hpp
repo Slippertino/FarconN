@@ -16,13 +16,13 @@ struct selection_base {
 
 struct invites_selection : selection_base {
 	std::string invitation_type_name;
-	std::string login;
+	std::string user_id;
 	std::string selection_column_name;
 	std::string filtration_column_name;
 };
 
 struct contacts_selection : selection_base { 
-	std::string login;
+	std::string user_id;
 };
 
 struct searching_selection : selection_base { 
