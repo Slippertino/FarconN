@@ -65,7 +65,6 @@ void server_networking::run() {
 	cancellation_flag = false;
 
 	multithread_context<server_networking>::run();
-	//run_context_loop(&server_networking::working_context, mt_sleep_time(1));
 }
 
 void server_networking::stop() {

@@ -45,28 +45,3 @@ declare_exec(server "${CMAKE_CURRENT_LIST_DIR}/example/server.cpp")
 declare_exec(client1 "${CMAKE_CURRENT_LIST_DIR}/example/client1.cpp")
 declare_exec(client2 "${CMAKE_CURRENT_LIST_DIR}/example/client2.cpp")
 declare_exec(client3 "${CMAKE_CURRENT_LIST_DIR}/example/client3.cpp")
-declare_exec(${PROJECT_NAME} main.cpp)
-
-#add_executable(server  "${CMAKE_CURRENT_LIST_DIR}/example/server.cpp" ${FCNN_SOURCES})
-#add_executable(client1 "${CMAKE_CURRENT_LIST_DIR}/example/client1.cpp" ${FCNN_SOURCES})
-#add_executable(client2 "${CMAKE_CURRENT_LIST_DIR}/example/client2.cpp" ${FCNN_SOURCES})
-#add_executable(client3 "${CMAKE_CURRENT_LIST_DIR}/example/client3.cpp" ${FCNN_SOURCES})
-#add_executable(${PROJECT_NAME} main.cpp ${FCNN_SOURCES})
-
-#target_include_directories(
-#	${PROJECT_NAME} server client1 client2 client3 
-#PUBLIC
-	##${FCNN_INCLUDE_DIR}/client 
-	#${FCNN_INCLUDE_DIR}/general		
-	#${FCNN_INCLUDE_DIR}/server
-	#${FCNN_THIRDPARTY_DIR}/mysql-connector/include
-#)
-
-#target_link_libraries(
-#	${PROJECT_NAME} server client1 client2 client3 
-#PRIVATE 
-#	nlohmann_json::nlohmann_json 
-#	mysqlcppconn-static
-#	cpp_events
-#)
-

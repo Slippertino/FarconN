@@ -47,8 +47,6 @@ protected:
 
 		auto error = WSAGetLastError();
 
-		//LOG(DEBUG) << "Проверка подключения...!! Result : " << result << " ; Error : " << error << "\n";
-
 		return (error != WSAECONNRESET && error != WSAECONNABORTED);
 	}
 
