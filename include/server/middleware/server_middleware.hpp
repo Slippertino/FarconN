@@ -10,6 +10,7 @@
 #include "entities/entities.hpp"
 #include "protocol/command_entities.hpp"
 #include "handlers/handlers.hpp"
+#include "../config/server_config.hpp"
 
 FARCONN_NAMESPACE_BEGIN(server)
 
@@ -39,11 +40,12 @@ class server_middleware {
 	DECLARE_HANDLER(chat_messages_list_handler)
 	DECLARE_HANDLER(chat_list_handler)
 	DECLARE_HANDLER(chat_party_list_handler)
+	DECLARE_HANDLER(help_handler)
 
 public:
 	server_middleware() = default;
 
-	void setup(const database_config&, std::string);
+	void setup(const server_config&);
 	void refresh();
 
 	void handle(const command_entity*, command_response*);

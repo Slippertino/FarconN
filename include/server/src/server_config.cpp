@@ -6,6 +6,10 @@ std::string server_config::get_files_storage_path() const {
 	return files_storage_path;
 }
 
+std::string server_config::get_docs_storage_path() const {
+	return docs_storage_path;
+}
+
 database_config server_config::get_db_config() const {
 	return db_config;
 }

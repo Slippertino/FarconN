@@ -14,6 +14,7 @@
 #include "db_queries_generator.hpp"
 #include "../../general/protocol/entities/entities.hpp"
 #include "../middleware/entities/entities.hpp"
+#include "../config/server_config.hpp"
 
 namespace fs = std::filesystem;
 
@@ -25,7 +26,7 @@ class db_responder {
 public:
 	db_responder() = default;
 
-	void setup(const database_config&, std::string);
+	void setup(const server_config&);
 
 	server_status_code sys_logout_users();
 
@@ -76,6 +77,8 @@ public:
 
 	server_status_code get_chat_party(const chat_party_selection&, ex_chat_party_info&);
 
+	server_status_code copy_docs_section(const std::string&, ex_help_info&);
+
 	~db_responder();
 
 private:
@@ -97,6 +100,7 @@ private:
 
 	database_config config;
 	std::filesystem::path files_storage_path;
+	std::filesystem::path docs_storage_path;
 };
 
 FARCONN_NAMESPACE_END

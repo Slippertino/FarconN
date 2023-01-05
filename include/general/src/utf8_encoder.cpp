@@ -12,6 +12,7 @@ void utf8_encoder::from_utf8_to_local(std::string& source) {
 	std::wstring src_uni;
 	to_unicode(source, src_uni, CP_UTF8);
 	from_unicode(src_uni, source, CP_ACP);
+	fix_inaccuracies_local(source);
 }
 
 void utf8_encoder::from_local_to_utf8_list(const std::initializer_list<std::string*>& sources) {
@@ -40,6 +41,15 @@ void utf8_encoder::from_unicode(const std::wstring& source, std::string& result,
 	result = std::string(size, '\0');
 
 	WideCharToMultiByte(code_page, 0, source.c_str(), source.length(), &result[0], size, nullptr, nullptr);
+}
+
+void utf8_encoder::fix_inaccuracies_local(std::string& source) {
+	std::string old_sub = "è?", new_sub = "é";
+
+	size_t pos;
+	while ((pos = source.find(old_sub)) != std::string::npos) {
+		source.replace(pos, old_sub.size(), new_sub);
+	}
 }
 
 FARCONN_NAMESPACE_END

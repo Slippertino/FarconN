@@ -8,7 +8,7 @@ const std::unordered_map<server_status_code, std::string> status_code_interprete
 {
 	{ server_status_code::SYS__OKEY,									"ОК"																	},
 
-	{ server_status_code::SYS__INVALID_COMMAND_ERROR,					"Неверная команда!"														},
+	{ server_status_code::SYS__INVALID_COMMAND_ERROR,					"Неверная команда! Узнайте больше, написав help"						},
 	{ server_status_code::SYS__INVALID_TOKEN_ERROR,						"Недопустимый сессионный токен пользователя!"							},
 	{ server_status_code::SYS__NONEXISTEN_USER_ERROR,					"Неизвестный пользователь!"												},
 	{ server_status_code::SYS__INVALID_OFFSET_VALUE_ERROR,				"Недопустимое значение смещения в выборке!"								},

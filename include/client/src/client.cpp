@@ -223,6 +223,20 @@ void client::chat_party_list_handler(command_entity* ent) const {
 	}
 }
 
+void client::help_handler(command_entity* ent) const {
+	ex_help_info info;
+	auto& comp = ent->params[2];
+
+	utf8_encoder::from_local_to_utf8(comp);
+	auto js = nlohmann::json::parse(ent->params[2]);
+	nlohmann::from_json(js, info.data);
+	info.to_encoding(&utf8_encoder::from_utf8_to_local);
+
+	for (auto& data : info.data) {
+		LOG(SESSION) << data << "\n";
+	}
+}
+
 const std::unordered_map<std::string, std::function<void(const client*, command_entity*)>> client::command_handlers = {
 	{ "profile_get",		&client::profile_get_handler		},
 	{ "invites_list",		&client::invites_list_handler		},
@@ -231,6 +245,7 @@ const std::unordered_map<std::string, std::function<void(const client*, command_
 	{ "chats_list",			&client::chats_list_handler			},
 	{ "chat_messages_list", &client::chat_messages_list_handler },
 	{ "chat_party_list",	&client::chat_party_list_handler	},
+	{ "help",				&client::help_handler				},				
 };
 
 FARCONN_NAMESPACE_END

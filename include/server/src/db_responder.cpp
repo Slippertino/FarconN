@@ -4,9 +4,10 @@ FARCONN_NAMESPACE_BEGIN(server)
 
 const size_t db_responder::connections_count = 1;
 
-void db_responder::setup(const database_config& db_config, std::string files_storage_path) {
-	this->config = db_config;
-	this->files_storage_path = files_storage_path;
+void db_responder::setup(const server_config& cfg) {
+	config = cfg.get_db_config();
+	files_storage_path = cfg.get_files_storage_path();
+	docs_storage_path = cfg.get_docs_storage_path();
 
 	if (!connections.empty()) {
 		return;
@@ -1023,6 +1024,30 @@ server_status_code db_responder::get_chat_party(const chat_party_selection& sele
 	}
 
 	free_query_components(comps);
+
+	return code;
+}
+
+server_status_code db_responder::copy_docs_section(const std::string& sname, ex_help_info& info) {
+	auto code = server_status_code::SYS__OKEY;
+
+	auto path = docs_storage_path / fs::path(sname + ".txt");
+
+	try {
+		std::ifstream ifstr(path);
+		std::string temp;
+
+		while (std::getline(ifstr, temp)) {
+			utf8_encoder::from_utf8_to_local(temp);
+			info.data.push_back(temp);
+		}
+
+		ifstr.close();
+	}
+	catch (const std::exception& ex) {
+		LOG(DB) << ex.what() << "\n";
+		code = server_status_code::SYS__INTERNAL_SERVER_ERROR;
+	}
 
 	return code;
 }

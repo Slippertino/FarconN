@@ -81,6 +81,15 @@ struct encoder<std::map<TKey, TValue>> {
 	}
 };
 
+template<class T>
+struct encoder<std::vector<T>> {
+	void encode(std::vector<T>& obj, const encoding_func_t& func) {
+		for (auto& cur : obj) {
+			encoder<T>().encode(cur, func);
+		}
+	}
+};
+
 template<>
 struct encoder<ex_message_info> {
 	void encode(ex_message_info& obj, const encoding_func_t& func) {

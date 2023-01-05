@@ -19,7 +19,7 @@ void server::setup(const server_config& config) {
 
 	networking_storage::storage();
 
-	repository.setup(config.get_db_config(), config.get_files_storage_path());
+	repository.setup(config);
 
 	networking.connection_incoming += event_create(const_cast<server*>(this), server::on_connection_incoming);
 	networking.error_occured += event_create(const_cast<server*>(this), server::on_server_net_error_occured);

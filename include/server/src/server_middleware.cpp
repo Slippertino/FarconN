@@ -4,8 +4,8 @@ using namespace farconn::general;
 
 FARCONN_NAMESPACE_BEGIN(server)
 
-void server_middleware::setup(const database_config& db_config, std::string files_storage_path) {
-	database.setup(db_config, files_storage_path);
+void server_middleware::setup(const server_config& config) {
+	database.setup(config);
 }
 
 void server_middleware::refresh() {
@@ -37,6 +37,7 @@ const std::unordered_map<std::string, std::function<void(server_middleware*, con
 	{ "chat_messages_list",	[&](server_middleware* main, const command_entity* in, command_response* out) { chat_messages_list_handler(main, in, out).handle();	} },
 	{ "chats_list",			[&](server_middleware* main, const command_entity* in, command_response* out) { chats_list_handler(main, in, out).handle();			} },
 	{ "chat_party_list",	[&](server_middleware* main, const command_entity* in, command_response* out) { chat_party_list_handler(main, in, out).handle();	} },
+	{ "help",				[&](server_middleware* main, const command_entity* in, command_response* out) { help_handler(main, in, out).handle();				} },
 };
 
 FARCONN_NAMESPACE_END

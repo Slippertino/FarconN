@@ -3,6 +3,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <string>
+#include <algorithm>
 #include "macro.hpp"
 
 FARCONN_NAMESPACE_BEGIN(general)
@@ -18,6 +19,8 @@ public:
 private:
 	static void to_unicode(const std::string&, std::wstring&, UINT);
 	static void from_unicode(const std::wstring&, std::string&, UINT);
+
+	static void fix_inaccuracies_local(std::string&);
 };
 
 FARCONN_NAMESPACE_END

@@ -40,6 +40,7 @@ private:
 	void chats_list_handler(command_entity*) const;
 	void chat_messages_list_handler(command_entity*) const;
 	void chat_party_list_handler(command_entity*) const;
+	void help_handler(command_entity*) const;
 
 private:
 	static const std::unordered_map<std::string, std::function<void(const client*, command_entity*)>> command_handlers;

@@ -18,3 +18,4 @@
 #include "chat_messages_list_handler.hpp"
 #include "chats_list_handler.hpp"
 #include "chat_party_list_handler.hpp"
+#include "help_handler.hpp"
