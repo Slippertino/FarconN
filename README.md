@@ -1,0 +1,21 @@
+# Backend-implementation of text chat
+## Working with the chat client is done by entering following commands:
+- [menu](docs/menu.md)
+- [signup](docs/signup.md)
+- [login](docs/login.md)
+- [logout](docs/logout.md)
+- [profile_get](docs/profile_get.md)
+- [profile_set](docs/profile_set.md)
+- [invite](docs/invite.md)
+- [invites_list](docs/invites_list.md)
+- [contacts_list](docs/contacts_list.md)
+- [contact_delete](docs/contact_delete.md)
+- [chat_add](docs/chat_add.md)
+- [chat_create](docs/chat_create.md)
+- [chat_leave](docs/chat_leave.md)
+- [chats_list](docs/chats_list.md)
+- [chat_party_list](docs/chat_party_list.md)
+- [chat_messages_list](docs/chat_messages_list.md)
+- [chat_post](docs/chat_post.md)
+- [search](docs/search.md)
+

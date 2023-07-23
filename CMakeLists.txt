@@ -15,7 +15,6 @@ set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(${FCNN_THIRDPARTY_DIR}/nlohmann_json)
 add_subdirectory(${FCNN_THIRDPARTY_DIR}/cpp_events)
 
-
 file(GLOB_RECURSE FCNN_SOURCES  "${FCNN_INCLUDE_DIR}/*.hpp" "${FCNN_INCLUDE_DIR}/*.cpp")
 
 message(${FCNN_SOURCES})
